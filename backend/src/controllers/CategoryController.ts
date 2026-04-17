@@ -19,7 +19,7 @@ export class CategoryController {
     }
 
     delete = async (req: Request, res: Response) => {
-        const { id } = req.params;
+        const id = req.params.id as string;
         await this.categoryService.deleteCategory(id);
         return res.status(200).json({ message: "Categoria removida (Soft Delete)" });
     }

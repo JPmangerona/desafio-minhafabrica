@@ -19,13 +19,13 @@ export class ProductController {
     }
 
     listByCategory = async (req: Request, res: Response) => {
-        const { id } = req.params;
+        const id = req.params.id as string;
         const products = await this.productService.getProductsByCategory(id);
         return res.status(200).json(products);
     }
 
     delete = async (req: Request, res: Response) => {
-        const { id } = req.params;
+        const id = req.params.id as string;
         await this.productService.deleteProduct(id);
         return res.status(200).json({ message: "Produto removido (Soft Delete)" });
     }

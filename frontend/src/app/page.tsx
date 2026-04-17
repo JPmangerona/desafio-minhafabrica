@@ -1,3 +1,6 @@
+import { StorefrontHeader } from '@/components/layout/StorefrontHeader';
+import Link from 'next/link';
+
 const categories = [
   {
     name: 'Mobiliário Arquitetural',
@@ -94,7 +97,8 @@ const products = [
 
 export default function StorefrontHome() {
   return (
-    <>
+    <div className="min-h-screen bg-white">
+      <StorefrontHeader />
       {/* ── Hero Section ── */}
       <section className="px-8 py-12 max-w-[1440px] mx-auto" id="colecoes">
         <div className="relative h-[600px] w-full rounded-[3rem] overflow-hidden flex items-center group">
@@ -325,6 +329,6 @@ export default function StorefrontHome() {
           </div>
         </div>
       </footer>
-    </>
+    </div>
   );
 }

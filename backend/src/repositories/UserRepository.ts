@@ -10,7 +10,7 @@ export class UserRepository {
         return await User.find();
     }
 
-    deleteByName = async (name: string): Promise<{ deletedCount?: number }> => {
+    deleteByName = async (name: string): Promise<any> => {
         // Soft delete alterando para ativo: false
         return await User.updateOne({ name }, { ativo: false });
     }
