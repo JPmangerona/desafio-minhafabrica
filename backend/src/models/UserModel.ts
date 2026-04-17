@@ -2,8 +2,22 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    email: { type: String, required: true },
-    password: { type: String, required: true }
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    role: { 
+        type: String, 
+        required: true, 
+        enum: ['admin', 'client', 'viewer', 'editor'], 
+        default: 'client' 
+    },
+    cpf: { type: String, required: false },
+    endereco: {
+        rua: { type: String },
+        numero: { type: String },
+        cidade: { type: String },
+        cep: { type: String }
+    },
+    ativo: { type: Boolean, default: true }
 })
 
 const User = mongoose.model("user", userSchema);

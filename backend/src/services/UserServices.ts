@@ -4,8 +4,8 @@ import { UserRepository } from "../repositories/UserRepository.js";
 export class UserService {
     private userRepository = new UserRepository();
 
-    createUser = async (name: string, email: string, password: string) => {
-        await this.userRepository.saveUser(name, email, password);
+    createUser = async (userData: any) => {
+        await this.userRepository.saveUser(userData);
     }
 
     getAllUsers = async () => {

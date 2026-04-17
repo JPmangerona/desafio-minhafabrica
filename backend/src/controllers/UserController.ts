@@ -13,7 +13,7 @@ export class UserController {
             return response.status(400).json({ message: 'Bad request! nome, email e password obrigatorios' })
         }
 
-        await userService.createUser(user.name, user.email, user.password)
+        await userService.createUser(user)
         return response.status(201).json({ message: 'User created' })
     }
 

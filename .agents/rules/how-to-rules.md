@@ -108,6 +108,7 @@ Mantenha este inventário atualizado ao criar novas rules:
 | `testing.md` | Model Decision | Testes unitários e integração para features críticas |
 | `delivery.md` | Always On | Checklist de entrega, prazo, funcionalidades obrigatórias |
 | `local-workflow.md` | Always On | Fluxo padrão de execução local (sem Docker) — npm run dev direto na máquina |
+| `business-rules.md` | Always On | Regras de negócio, definições de RBAC (Admin, Editor, Viewer, Client) e integridade |
 | `how-to-rules.md` | Always On | Meta-rule — como criar e organizar rules (este arquivo) |
 
 ---

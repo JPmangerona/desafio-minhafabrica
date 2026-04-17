@@ -1,12 +1,8 @@
 import User from "../models/UserModel.js";
 
 export class UserRepository {
-    saveUser = async (name: string, email: string, password: string) => {
-        const newUser = new User({
-            name,
-            email,
-            password
-        });
+    saveUser = async (userData: any) => {
+        const newUser = new User(userData);
         return await newUser.save();
     }
 
@@ -15,10 +11,11 @@ export class UserRepository {
     }
 
     deleteByName = async (name: string): Promise<{ deletedCount?: number }> => {
-        return await User.deleteOne({ name });
+        // Soft delete alterando para ativo: false
+        return await User.updateOne({ name }, { ativo: false });
     }
 
     getUserByEmailAndPassword = async (email: string, password: string) => {
-        return await User.findOne({ email, password });
+        return await User.findOne({ email, password, ativo: true });
     }
 }
