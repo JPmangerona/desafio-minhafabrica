@@ -107,6 +107,7 @@ Mantenha este inventário atualizado ao criar novas rules:
 | `security.md` | Always On | RBAC, CORS, variáveis de ambiente, operações atômicas |
 | `testing.md` | Model Decision | Testes unitários e integração para features críticas |
 | `delivery.md` | Always On | Checklist de entrega, prazo, funcionalidades obrigatórias |
+| `docker-workflow.md` | Always On | Fluxo padrão de execução com Docker Compose e docker exec |
 | `how-to-rules.md` | Always On | Meta-rule — como criar e organizar rules (este arquivo) |
 
 ---
