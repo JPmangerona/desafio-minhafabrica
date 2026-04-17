@@ -18,4 +18,8 @@ export class CategoryService {
     deleteCategory = async (id: string) => {
         return await this.categoryRepository.delete(id);
     }
+
+    updateCategory = async (id: string, data: any) => {
+        return await this.categoryRepository.update(id, data);
+    }
 }

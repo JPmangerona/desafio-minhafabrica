@@ -9,103 +9,101 @@ import {
   Download,
   Edit3,
   Trash2,
-  Copy,
-  Package,
-  Tag,
-  AlertTriangle,
-  DollarSign,
+  BookMarked,
+  ToggleLeft,
+  ToggleRight,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Hash,
+  CheckCircle2,
+  XCircle,
 } from 'lucide-react';
 import api from '@/services/api';
-import { Product } from '@/types';
+import { Category } from '@/types';
 
-export default function ProdutosPage() {
-  const [products, setProducts] = useState<Product[]>([]);
+export default function CatalogosPage() {
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [newProduct, setNewProduct] = useState({ nome: '', preco: 0, custo: 0, estoque: 0, destaque: false });
+  const [newCategory, setNewCategory] = useState({ nome: '', descricao: '', ordem: 0 });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
-  const fetchProducts = async () => {
+  const fetchCategories = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/product');
-      setProducts(response.data);
+      const response = await api.get('/category');
+      setCategories(response.data);
     } catch (err: any) {
-      setError('Erro ao carregar catálogo de produtos.');
+      setError('Erro ao carregar os catálogos.');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProducts();
+    fetchCategories();
   }, []);
 
-  const filtered = products.filter(
-    (p) =>
-      p.nome.toLowerCase().includes(search.toLowerCase()) ||
-      (p.sku && p.sku.toLowerCase().includes(search.toLowerCase()))
+  const filtered = categories.filter((c) =>
+    c.nome.toLowerCase().includes(search.toLowerCase())
   );
+
+  const activeCount = categories.filter((c) => c.ativo).length;
+  const inactiveCount = categories.filter((c) => !c.ativo).length;
 
   const handleCreateOrUpdate = async () => {
     try {
       const formData = new FormData();
-      formData.append('nome', newProduct.nome);
-      formData.append('preco', String(newProduct.preco));
-      formData.append('custo', String(newProduct.custo));
-      formData.append('estoque', String(newProduct.estoque));
-      formData.append('destaque', String(newProduct.destaque));
+      formData.append('nome', newCategory.nome);
+      formData.append('descricao', newCategory.descricao);
+      formData.append('ordem', String(newCategory.ordem));
       if (imageFile) formData.append('imagem', imageFile);
       
       if (editingId) {
-        await api.put(`/product/${editingId}`, formData, {
+        await api.put(`/category/${editingId}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
       } else {
-        await api.post('/product', formData, {
+        await api.post('/category', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
       }
-      
-      await fetchProducts();
+
+      await fetchCategories();
       setShowModal(false);
       setEditingId(null);
-      setNewProduct({ nome: '', preco: 0, custo: 0, estoque: 0, destaque: false });
+      setNewCategory({ nome: '', descricao: '', ordem: 0 });
       setImageFile(null);
       setImagePreview(null);
     } catch (err: any) {
-      alert(`Erro ao ${editingId ? 'atualizar' : 'cadastrar'} produto.`);
+      alert(`Erro ao ${editingId ? 'atualizar' : 'criar'} catálogo.`);
     }
   };
 
-  const handleEditClick = (product: Product) => {
-    setEditingId(product._id);
-    setNewProduct({
-      nome: product.nome,
-      preco: product.preco,
-      custo: product.custo || 0,
-      estoque: product.estoque,
-      destaque: product.destaque || false,
+  const handleEditClick = (cat: Category) => {
+    setEditingId(cat._id);
+    setNewCategory({
+      nome: cat.nome,
+      descricao: cat.descricao || '',
+      ordem: cat.ordem,
     });
-    setImagePreview(product.imagem_url || null);
+    setImagePreview(cat.imagem_url || null);
     setImageFile(null);
     setShowModal(true);
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este produto?')) {
+    if (confirm('Tem certeza que deseja excluir este catálogo?')) {
       try {
-        await api.delete(`/product/${id}`);
-        await fetchProducts();
+        await api.delete(`/category/${id}`);
+        await fetchCategories();
       } catch (err) {
-        alert('Erro ao excluir produto.');
+        alert('Erro ao excluir catálogo.');
       }
     }
   };
@@ -121,24 +119,24 @@ export default function ProdutosPage() {
             </span>
           </nav>
           <h2 className="text-4xl font-black text-slate-900 -tracking-tight mb-2">
-            Gestão de Produtos
+            Gestão de Catálogos
           </h2>
           <p className="text-slate-500 max-w-xl">
-            Cadastre, edite e organize todos os produtos do catálogo. Controle estoques e
-            preços em um único lugar.
+            Organize seus produtos em categorias e catálogos. Controle a visibilidade e a
+            ordem de exibição em um único lugar.
           </p>
         </div>
         <button
           onClick={() => {
             setEditingId(null);
-            setNewProduct({ nome: '', preco: 0, custo: 0, estoque: 0, destaque: false });
+            setNewCategory({ nome: '', descricao: '', ordem: 0 });
             setImagePreview(null);
             setImageFile(null);
             setShowModal(true);
           }}
           className="group flex items-center gap-3 bg-[#1A237E] text-white pl-6 pr-5 py-4 rounded-2xl font-bold shadow-lg shadow-indigo-900/20 hover:scale-[1.02] transition-all shrink-0"
         >
-          Novo Produto
+          Novo Catálogo
           <div className="bg-white/20 p-2 rounded-xl">
             <Plus size={20} />
           </div>
@@ -148,10 +146,10 @@ export default function ProdutosPage() {
       {/* Stats strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
         {[
-          { label: 'Total de Produtos', value: '1.284', icon: Package, color: 'text-blue-600', bg: 'bg-blue-50' },
-          { label: 'Catálogos', value: '18', icon: Tag, color: 'text-[#1A237E]', bg: 'bg-indigo-50' },
-          { label: 'Estoque Baixo', value: '7', icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50' },
-          { label: 'Valor em Estoque', value: 'R$ 2,4M', icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { label: 'Total de Catálogos', value: String(categories.length), icon: BookMarked, color: 'text-[#1A237E]', bg: 'bg-indigo-50' },
+          { label: 'Ativos', value: String(activeCount), icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { label: 'Inativos', value: String(inactiveCount), icon: XCircle, color: 'text-red-500', bg: 'bg-red-50' },
+          { label: 'Ordem Máxima', value: categories.length > 0 ? String(Math.max(...categories.map(c => c.ordem))) : '0', icon: Hash, color: 'text-blue-600', bg: 'bg-blue-50' },
         ].map((stat) => {
           const Icon = stat.icon;
           return (
@@ -162,7 +160,7 @@ export default function ProdutosPage() {
                 </div>
                 <span className="text-xs text-slate-500 font-medium">{stat.label}</span>
               </div>
-              <p className={`text-2xl font-black text-slate-900`}>{stat.value}</p>
+              <p className="text-2xl font-black text-slate-900">{stat.value}</p>
             </div>
           );
         })}
@@ -177,7 +175,7 @@ export default function ProdutosPage() {
               <Search size={18} className="text-slate-400" />
               <input
                 type="text"
-                placeholder="Buscar por nome ou SKU..."
+                placeholder="Buscar por nome..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="bg-transparent border-none outline-none text-sm w-72 placeholder:text-slate-400"
@@ -200,7 +198,7 @@ export default function ProdutosPage() {
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
                 <Loader2 className="animate-spin text-[#1A237E]" size={40} />
-                <p className="text-slate-500 font-medium tracking-tight">Preparando catálogo...</p>
+                <p className="text-slate-500 font-medium tracking-tight">Carregando catálogos...</p>
               </div>
             ) : error ? (
               <div className="flex flex-col items-center justify-center py-20 gap-4 text-red-500">
@@ -212,16 +210,16 @@ export default function ProdutosPage() {
                 <thead>
                   <tr className="text-left border-b border-slate-100 bg-slate-50/50">
                     <th className="px-8 py-6 text-[10px] uppercase tracking-widest font-bold text-slate-500">
-                      Produto
+                      Catálogo
                     </th>
                     <th className="px-8 py-6 text-[10px] uppercase tracking-widest font-bold text-slate-500">
-                      SKU
+                      Descrição
                     </th>
                     <th className="px-8 py-6 text-[10px] uppercase tracking-widest font-bold text-slate-500">
-                      Preço
+                      Ordem
                     </th>
                     <th className="px-8 py-6 text-[10px] uppercase tracking-widest font-bold text-slate-500">
-                      Estoque
+                      Status
                     </th>
                     <th className="px-8 py-6 text-[10px] uppercase tracking-widest font-bold text-slate-500 text-right">
                       Ações
@@ -231,62 +229,68 @@ export default function ProdutosPage() {
                 <tbody className="divide-y divide-slate-100">
                   {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-8 py-12 text-center text-slate-400">
-                        Nenhum produto no catálogo.
+                      <td colSpan={5} className="px-8 py-20 text-center">
+                        <div className="flex flex-col items-center gap-3 text-slate-400">
+                          <BookMarked size={40} />
+                          <p className="font-medium">Nenhum catálogo encontrado.</p>
+                          <button
+                            onClick={() => setShowModal(true)}
+                            className="mt-2 text-sm font-bold text-[#1A237E] hover:underline"
+                          >
+                            Criar primeiro catálogo
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ) : (
-                    filtered.map((product) => (
+                    filtered.map((cat) => (
                       <tr
-                        key={product._id}
+                        key={cat._id}
                         className="hover:bg-slate-50/50 transition-colors group"
                       >
                         <td className="px-8 py-5">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl overflow-hidden bg-slate-100 shrink-0 flex items-center justify-center text-slate-300">
-                              {product.imagem_url ? (
-                                <img
-                                  src={product.imagem_url}
-                                  alt={product.nome}
-                                  className="w-full h-full object-cover"
-                                />
+                            <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center shrink-0 overflow-hidden">
+                              {cat.imagem_url ? (
+                                <img src={cat.imagem_url} alt={cat.nome} className="w-full h-full object-cover" />
                               ) : (
-                                <Package size={24} />
+                                <BookMarked size={22} className="text-[#1A237E]" />
                               )}
                             </div>
                             <p className="font-bold text-slate-900 group-hover:text-[#1A237E] transition-colors cursor-pointer">
-                              {product.nome}
+                              {cat.nome}
                             </p>
                           </div>
                         </td>
                         <td className="px-8 py-5">
+                          <span className="text-sm text-slate-500 line-clamp-1">
+                            {cat.descricao || '—'}
+                          </span>
+                        </td>
+                        <td className="px-8 py-5">
                           <span className="text-xs font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">
-                            {product.sku || 'N/A'}
+                            #{cat.ordem}
                           </span>
                         </td>
                         <td className="px-8 py-5">
-                          <span className="text-sm font-bold text-slate-900">
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.preco)}
-                          </span>
-                        </td>
-                        <td className="px-8 py-5">
-                          <div className="flex flex-col gap-1">
-                            <span className={`text-sm font-bold ${product.estoque <= 5 ? 'text-red-500' : 'text-slate-700'}`}>
-                              {product.estoque} un.
+                          {cat.ativo ? (
+                            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full">
+                              <ToggleRight size={14} />
+                              Ativo
                             </span>
-                            {product.estoque <= 5 && (
-                              <span className="text-[9px] font-black uppercase text-red-600 bg-red-50 px-2 py-0.5 rounded-full w-fit">
-                                Baixo Estoque
-                              </span>
-                            )}
-                          </div>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-full">
+                              <ToggleLeft size={14} />
+                              Inativo
+                            </span>
+                          )}
                         </td>
                         <td className="px-8 py-5 text-right">
                           <div className="flex items-center justify-end gap-2 text-slate-400">
-                            <button onClick={() => handleEditClick(product)} className="p-2 hover:bg-slate-100 hover:text-[#1A237E] rounded-xl transition-all" title="Editar">
+                            <button onClick={() => handleEditClick(cat)} className="p-2 hover:bg-slate-100 hover:text-[#1A237E] rounded-xl transition-all" title="Editar">
                               <Edit3 size={18} />
                             </button>
-                            <button onClick={() => handleDelete(product._id)} className="p-2 hover:bg-red-50 hover:text-red-500 rounded-xl transition-all" title="Excluir">
+                            <button onClick={() => handleDelete(cat._id)} className="p-2 hover:bg-red-50 hover:text-red-500 rounded-xl transition-all" title="Excluir">
                               <Trash2 size={18} />
                             </button>
                           </div>
@@ -298,10 +302,11 @@ export default function ProdutosPage() {
               </table>
             )}
           </div>
+
           <div className="mt-8 flex items-center justify-between px-4 flex-wrap gap-4">
             <p className="text-sm text-slate-500">
               Mostrando <span className="font-bold text-[#1A237E]">{filtered.length}</span> resultados de{' '}
-              <span className="font-bold text-[#1A237E]">{products.length}</span> produtos
+              <span className="font-bold text-[#1A237E]">{categories.length}</span> catálogos
             </p>
             <div className="flex gap-2">
               <button
@@ -336,7 +341,7 @@ export default function ProdutosPage() {
 
       {/* Footer */}
       <footer className="mt-16 flex flex-col md:flex-row justify-between items-center py-12 border-t border-slate-100">
-        <p className="text-xs text-on-surface-variant font-medium">
+        <p className="text-xs text-slate-400 font-medium">
           © 2024 MinhaFábrica. Todos os direitos reservados.
         </p>
         <div className="flex gap-8 mt-4 md:mt-0">
@@ -346,109 +351,78 @@ export default function ProdutosPage() {
         </div>
       </footer>
 
-      {/* ── Add Product Modal ── */}
+      {/* ── Add Category Modal ── */}
       {showModal && (
-        <div className="fixed inset-0 bg-primary/20 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#1A237E]/20 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden">
-            <div className="bg-primary p-8 text-white">
+            <div className="bg-[#1A237E] p-8 text-white">
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="text-3xl font-black -tracking-tight">{editingId ? 'Editar Produto' : 'Novo Produto'}</h3>
+                  <h3 className="text-3xl font-black -tracking-tight">{editingId ? 'Editar Catálogo' : 'Novo Catálogo'}</h3>
                   <p className="text-white/80 text-sm mt-1">
-                    {editingId ? 'Atualize as informações do produto.' : 'Adicione um novo item ao catálogo.'}
+                    {editingId ? 'Atualize as informações do catálogo.' : 'Adicione uma nova categoria ao sistema.'}
                   </p>
                 </div>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                  className="p-2 hover:bg-white/20 rounded-full transition-colors text-white font-bold text-lg leading-none"
                 >
-                  <span className="material-symbols-outlined">close</span>
+                  ✕
                 </button>
               </div>
             </div>
 
             <div className="p-8 space-y-6">
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
-                  Nome do Produto
+                <label className="text-[10px] uppercase tracking-widest font-bold text-slate-500 block">
+                  Nome do Catálogo
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex: Poltrona Barcelona"
-                  value={newProduct.nome}
-                  onChange={(e) => setNewProduct({ ...newProduct, nome: e.target.value })}
-                  className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                  placeholder="Ex: Móveis de Sala"
+                  value={newCategory.nome}
+                  onChange={(e) => setNewCategory({ ...newCategory, nome: e.target.value })}
+                  className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-[#1A237E]/30 transition-all text-sm"
                 />
               </div>
 
-              {/* Grid: Preço + Custo + Estoque */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
-                    Preço (R$)
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="0"
-                    value={newProduct.preco}
-                    onChange={(e) => setNewProduct({ ...newProduct, preco: Number(e.target.value) })}
-                    className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-primary/30 transition-all"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
-                    Custo (R$)
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="0"
-                    value={newProduct.custo}
-                    onChange={(e) => setNewProduct({ ...newProduct, custo: Number(e.target.value) })}
-                    className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-primary/30 transition-all"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
-                    Qtd. Estoque
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="0"
-                    value={newProduct.estoque}
-                    onChange={(e) => setNewProduct({ ...newProduct, estoque: Number(e.target.value) })}
-                    className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-primary/30 transition-all"
-                  />
-                </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest font-bold text-slate-500 block">
+                  Descrição (opcional)
+                </label>
+                <textarea
+                  placeholder="Descreva esta categoria..."
+                  value={newCategory.descricao}
+                  onChange={(e) => setNewCategory({ ...newCategory, descricao: e.target.value })}
+                  rows={3}
+                  className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-[#1A237E]/30 transition-all text-sm resize-none"
+                />
               </div>
 
-              {/* Destaque Toggle */}
-              <div className="flex items-center justify-between bg-surface-container-low p-4 rounded-2xl">
-                <div>
-                  <h4 className="text-sm font-bold text-slate-800">Produto Destaque</h4>
-                  <p className="text-xs text-slate-500">Aparecerá na vitrine principal da loja</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="sr-only peer"
-                    checked={newProduct.destaque}
-                    onChange={(e) => setNewProduct({ ...newProduct, destaque: e.target.checked })}
-                  />
-                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#1A237E]"></div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest font-bold text-slate-500 block">
+                  Ordem de Exibição
                 </label>
+                <input
+                  type="number"
+                  placeholder="0"
+                  value={newCategory.ordem}
+                  onChange={(e) => setNewCategory({ ...newCategory, ordem: Number(e.target.value) })}
+                  className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-[#1A237E]/30 transition-all text-sm"
+                />
               </div>
 
               {/* Image Upload */}
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
-                  Imagem do Produto
+                <label className="text-[10px] uppercase tracking-widest font-bold text-slate-500 block">
+                  Imagem do Catálogo
                 </label>
-                <label className="flex flex-col items-center justify-center gap-2 w-full border-2 border-dashed border-slate-200 rounded-2xl py-6 cursor-pointer hover:border-primary/40 transition-all bg-slate-50">
+                <label className="flex flex-col items-center justify-center gap-2 w-full border-2 border-dashed border-slate-200 rounded-2xl py-6 cursor-pointer hover:border-[#1A237E]/40 transition-all bg-slate-50">
                   {imagePreview ? (
                     <img src={imagePreview} alt="Preview" className="h-28 w-28 object-cover rounded-xl" />
                   ) : (
                     <>
-                      <Package size={32} className="text-slate-300" />
+                      <BookMarked size={32} className="text-slate-300" />
                       <span className="text-xs text-slate-400">Clique para selecionar (jpg, png, webp · max 5MB)</span>
                     </>
                   )}
@@ -468,15 +442,15 @@ export default function ProdutosPage() {
               <div className="pt-4 flex gap-4">
                 <button
                   onClick={() => setShowModal(false)}
-                  className="flex-1 py-4 text-primary font-bold hover:bg-surface-container-high rounded-2xl transition-all"
+                  className="flex-1 py-4 text-[#1A237E] font-bold hover:bg-slate-100 rounded-2xl transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleCreateOrUpdate}
-                  className="flex-[2] py-4 bg-primary text-white font-bold rounded-2xl shadow-lg hover:scale-[1.02] active:scale-95 transition-all"
+                  className="flex-[2] py-4 bg-[#1A237E] text-white font-bold rounded-2xl shadow-lg hover:scale-[1.02] active:scale-95 transition-all"
                 >
-                  {editingId ? 'Salvar Alterações' : 'Criar Produto'}
+                  {editingId ? 'Salvar Alterações' : 'Criar Catálogo'}
                 </button>
               </div>
             </div>

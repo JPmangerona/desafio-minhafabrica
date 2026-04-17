@@ -1,34 +1,30 @@
 import { StorefrontHeader } from '@/components/layout/StorefrontHeader';
 import Link from 'next/link';
 
-const categories = [
+const fallbackCategories = [
   {
-    name: 'Mobiliário Arquitetural',
+    nome: 'Mobiliário Arquitetural',
     count: '124 itens',
-    image: 'https://picsum.photos/seed/arch-furniture/600/700',
-    size: 'tall',
+    imagem_url: 'https://picsum.photos/seed/arch-furniture/600/700',
   },
   {
-    name: 'Iluminação Ambiente',
+    nome: 'Iluminação Ambiente',
     count: '86 itens',
-    image: 'https://picsum.photos/seed/ambient-light/600/300',
-    size: 'half',
+    imagem_url: 'https://picsum.photos/seed/ambient-light/600/300',
   },
   {
-    name: 'Decoração Artesanal',
+    nome: 'Decoração Artesanal',
     count: '210 itens',
-    image: 'https://picsum.photos/seed/artisan-decor/600/300',
-    size: 'half',
+    imagem_url: 'https://picsum.photos/seed/artisan-decor/600/300',
   },
   {
-    name: 'Têxteis Premium',
+    nome: 'Têxteis Premium',
     count: '54 itens',
-    image: 'https://picsum.photos/seed/premium-textiles/600/700',
-    size: 'tall',
+    imagem_url: 'https://picsum.photos/seed/premium-textiles/600/700',
   },
 ];
 
-const products = [
+const fallbackProducts = [
   {
     id: 1,
     name: 'Poltrona Esfera',
@@ -95,7 +91,70 @@ const products = [
   },
 ];
 
-export default function StorefrontHome() {
+export default async function StorefrontHome() {
+  let bdCategories: any[] = [];
+  let bdProducts: any[] = [];
+  try {
+    const resCat = await fetch('http://localhost:5000/category', { cache: 'no-store' });
+    if (resCat.ok) {
+      bdCategories = await resCat.json();
+    }
+  } catch (error) {
+    console.error("Erro ao buscar catálogos:", error);
+  }
+
+  try {
+    const resProd = await fetch('http://localhost:5000/product', { cache: 'no-store' });
+    if (resProd.ok) {
+      bdProducts = await resProd.json();
+    }
+  } catch (error) {
+    console.error("Erro ao buscar produtos:", error);
+  }
+
+  // Hero Section (Catálogo ordem 1)
+  const heroCat = bdCategories.find((c) => c.ordem === 1 && c.ativo);
+  const heroData = heroCat ? {
+    title: heroCat.nome,
+    description: heroCat.descricao || 'Descubra mobiliário escultural e objetos curados desenvolvidos para transformar seu espaço em uma galeria particular.',
+    image: heroCat.imagem_url || 'https://picsum.photos/seed/luxury-living-room/1400/700'
+  } : {
+    title: 'Coleção Overzide',
+    description: 'Descubra mobiliário escultural e objetos curados desenvolvidos para transformar seu espaço em uma galeria particular.',
+    image: 'https://picsum.photos/seed/luxury-living-room/1400/700'
+  };
+
+  // Bento Grid (Catálogos ordem 2, 3, 4, 5)
+  // Prepara os 4 itens para a grid. Se não existir, preenchemos com os placeholders originais.
+  const displayCategories = [2, 3, 4, 5].map((order, index) => {
+    const cat = bdCategories.find((c) => c.ordem === order && c.ativo);
+    if (cat) {
+      return {
+        name: cat.nome,
+        count: cat.descricao || 'Ver coleção', // Usamos a descrição como um "texto extra"
+        image: cat.imagem_url || fallbackCategories[index].imagem_url,
+      };
+    }
+    return {
+      name: fallbackCategories[index].nome,
+      count: fallbackCategories[index].count,
+      image: fallbackCategories[index].imagem_url,
+    };
+  });
+
+  // Filtra apenas produtos com destaque == true
+  const destaqueProducts = bdProducts.filter(p => p.destaque === true).map(p => ({
+    id: p._id,
+    name: p.nome,
+    category: p.categoria?.nome || 'Geral',
+    price: `R$ ${p.preco.toFixed(2).replace('.', ',')}`, // Formatação simples BRL
+    image: p.imagem_url || fallbackProducts[0].image,
+    badge: null,
+  }));
+
+  // Se não houver nenhum produto em destaque ainda, usamos os placeholders para a loja não ficar vazia
+  const displayProducts = destaqueProducts.length > 0 ? destaqueProducts : fallbackProducts;
+
   return (
     <div className="min-h-screen bg-white">
       <StorefrontHeader />
@@ -104,21 +163,20 @@ export default function StorefrontHome() {
         <div className="relative h-[600px] w-full rounded-[3rem] overflow-hidden flex items-center group">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="https://picsum.photos/seed/luxury-living-room/1400/700"
-            alt="Sala de estar minimalista de alto padrão"
+            src={heroData.image}
+            alt={heroData.title}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-primary/30 backdrop-brightness-75" />
           <div className="relative z-10 px-16 max-w-2xl">
             <span className="text-[11px] uppercase tracking-[0.2em] text-white mb-4 block font-medium">
-              Edição Limitada
+              Destaque Principal
             </span>
-            <h1 className="text-6xl font-bold text-white -tracking-tight mb-6 leading-none">
-              Coleção <br />Outono 2024
+            <h1 className="text-6xl font-bold text-white -tracking-tight mb-6 leading-tight">
+              {heroData.title}
             </h1>
             <p className="text-white/90 text-lg mb-10 max-w-md font-light leading-relaxed">
-              Descubra mobiliário escultural e objetos curados desenvolvidos para transformar
-              seu espaço em uma galeria particular.
+              {heroData.description}
             </p>
             <div className="flex gap-4">
               <button className="bg-gradient-to-br from-primary to-primary-container text-white px-8 py-4 rounded-full font-semibold shadow-lg hover:opacity-90 transition-all flex items-center gap-2">
@@ -131,14 +189,14 @@ export default function StorefrontHome() {
       </section>
 
       {/* ── Categories Bento Grid ── */}
-      <section className="px-8 py-16 max-w-[1440px] mx-auto" id="lancamentos">
+      <section className="px-8 py-16 max-w-[1440px] mx-auto" id="catalogos">
         <div className="flex justify-between items-end mb-12">
           <div>
             <h2 className="text-3xl font-bold -tracking-tight text-primary mb-2">
               Comprar por Categoria
             </h2>
             <p className="text-on-surface-variant font-light">
-              Estética refinada em cada ambiente da sua vida.
+              Encontre o estilo que mais te agrada.
             </p>
           </div>
           <a
@@ -154,20 +212,20 @@ export default function StorefrontHome() {
           <div className="group relative aspect-square md:aspect-auto md:h-[500px] rounded-[3rem] overflow-hidden bg-surface-container-low cursor-pointer">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={categories[0].image}
-              alt={categories[0].name}
+              src={displayCategories[0].image}
+              alt={displayCategories[0].name}
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
             <div className="absolute inset-0 bg-black/5 group-hover:bg-black/20 transition-all" />
             <div className="absolute bottom-10 left-10">
-              <h3 className="text-2xl font-bold text-white mb-1">{categories[0].name}</h3>
-              <p className="text-white/80 text-sm uppercase tracking-widest">{categories[0].count}</p>
+              <h3 className="text-2xl font-bold text-white mb-1">{displayCategories[0].name}</h3>
+              <p className="text-white/80 text-sm uppercase tracking-widest">{displayCategories[0].count}</p>
             </div>
           </div>
 
           {/* Column 2 — two halves */}
           <div className="flex flex-col gap-6">
-            {categories.slice(1, 3).map((cat) => (
+            {displayCategories.slice(1, 3).map((cat) => (
               <div
                 key={cat.name}
                 className="group relative h-[238px] rounded-[3rem] overflow-hidden bg-surface-container-low cursor-pointer"
@@ -181,7 +239,7 @@ export default function StorefrontHome() {
                 <div className="absolute inset-0 bg-black/5 group-hover:bg-black/20 transition-all" />
                 <div className="absolute bottom-8 left-8">
                   <h3 className="text-xl font-bold text-white mb-1">{cat.name}</h3>
-                  <p className="text-white/80 text-xs uppercase tracking-widest">{cat.count}</p>
+                  <p className="text-white/80 text-xs uppercase tracking-widest line-clamp-1">{cat.count}</p>
                 </div>
               </div>
             ))}
@@ -191,33 +249,32 @@ export default function StorefrontHome() {
           <div className="group relative aspect-square md:aspect-auto md:h-[500px] rounded-[3rem] overflow-hidden bg-surface-container-low cursor-pointer">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={categories[3].image}
-              alt={categories[3].name}
+              src={displayCategories[3].image}
+              alt={displayCategories[3].name}
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
             <div className="absolute inset-0 bg-black/5 group-hover:bg-black/20 transition-all" />
             <div className="absolute bottom-10 left-10">
-              <h3 className="text-2xl font-bold text-white mb-1">{categories[3].name}</h3>
-              <p className="text-white/80 text-sm uppercase tracking-widest">{categories[3].count}</p>
+              <h3 className="text-2xl font-bold text-white mb-1">{displayCategories[3].name}</h3>
+              <p className="text-white/80 text-sm uppercase tracking-widest">{displayCategories[3].count}</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* ── Product Grid ── */}
-      <section className="px-8 py-16 max-w-[1440px] mx-auto bg-surface-container-low rounded-[2rem] mb-8" id="curados">
+      <section className="px-8 py-16 max-w-[1440px] mx-auto bg-surface-container-low rounded-[2rem] mb-8" id="destaques">
         <div className="mb-12 text-center">
           <h2 className="text-3xl font-bold -tracking-tight text-primary mb-4">
-            Escolha do Curador
+            Produtos Mais Procurados
           </h2>
           <p className="text-on-surface-variant max-w-xl mx-auto font-light">
-            Peças selecionadas à mão da nossa rede global de artesãos, cada uma refletindo
-            os princípios do design atemporal.
+            Produtos versáteis que se adaptam a qualquer ocasião, e com tecnologia que permite conforto e durabilidade.
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {products.map((product) => (
+          {displayProducts.map((product) => (
             <div key={product.id} className="group flex flex-col cursor-pointer">
               <div className="relative aspect-[3/4] bg-surface-container-lowest rounded-xl overflow-hidden mb-4">
                 {/* eslint-disable-next-line @next/next/no-img-element */}

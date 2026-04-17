@@ -28,4 +28,11 @@ export class ProductService {
     deleteProduct = async (id: string) => {
         return await this.productRepository.delete(id);
     }
+
+    updateProduct = async (id: string, data: any) => {
+        if (!data.categoria || data.categoria.includes("COLE_O_ID")) {
+            delete data.categoria;
+        }
+        return await this.productRepository.update(id, data);
+    }
 }

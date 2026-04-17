@@ -12,11 +12,11 @@ export function StorefrontHeader() {
                         <a href="#colecoes" className="text-[#1A237E] font-semibold border-b-2 border-[#1A237E] pb-1 uppercase tracking-wider text-sm">
                             Coleções
                         </a>
-                        <a href="#lancamentos" className="text-slate-500 hover:text-[#1A237E] transition-colors uppercase tracking-wider text-sm">
-                            Lançamentos
+                        <a href="#catalogos" className="text-slate-500 hover:text-[#1A237E] transition-colors uppercase tracking-wider text-sm">
+                            Catálogos
                         </a>
-                        <a href="#curados" className="text-slate-500 hover:text-[#1A237E] transition-colors uppercase tracking-wider text-sm">
-                            Sets Curados
+                        <a href="#destaques" className="text-slate-500 hover:text-[#1A237E] transition-colors uppercase tracking-wider text-sm">
+                            Destaques
                         </a>
                     </div>
                 </div>

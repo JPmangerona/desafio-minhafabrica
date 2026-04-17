@@ -1,0 +1,11 @@
+import type { Request, Response } from "express";
+
+export class LogoutController {
+    logout = (_req: Request, res: Response) => {
+        res.clearCookie('token', {
+            httpOnly: true,
+            sameSite: 'strict',
+        });
+        return res.status(200).json({ message: 'Logout realizado com sucesso.' });
+    }
+}

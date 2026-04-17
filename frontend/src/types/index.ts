@@ -19,6 +19,7 @@ export interface Category {
     _id: string;
     nome: string;
     descricao?: string;
+    imagem_url?: string;
     ativo: boolean;
     ordem: number;
     createdAt: string;
@@ -30,6 +31,7 @@ export interface Product {
     nome: string;
     descricao?: string;
     preco: number;
+    custo?: number;
     estoque: number;
     sku?: string;
     imagem_url?: string;

@@ -1,12 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import api from '@/services/api';
 import {
   LayoutDashboard,
   Package,
   Users,
-  LineChart,
+  BookMarked,
   Settings,
   Plus,
   Store,
@@ -16,13 +17,26 @@ import {
 const navItems = [
   { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/admin/produtos', icon: Package, label: 'Produtos' },
+  { href: '/admin/catalogos', icon: BookMarked, label: 'Catálogos' },
   { href: '/admin/usuarios', icon: Users, label: 'Usuários' },
-  { href: '/admin/analytics', icon: LineChart, label: 'Analytics' },
-  { href: '/admin/configuracoes', icon: Settings, label: 'Configurações' },
+  //  { href: '/admin/configuracoes', icon: Settings, label: 'Configurações' },
 ];
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await api.post('/logout');
+    } catch (_) {
+      // ignora erro no endpoint, faz logout local de qualquer jeito
+    } finally {
+      localStorage.removeItem('token');
+      document.cookie = 'token=; Max-Age=0; path=/';
+      router.push('/login');
+    }
+  };
 
   return (
     <aside className="fixed h-full left-0 top-0 w-64 bg-white flex flex-col py-6 gap-2 shadow-sm z-40 border-r border-slate-100">
@@ -73,7 +87,7 @@ export function AdminSidebar() {
           <div className="flex items-center gap-3 px-4 py-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://i.pravatar.cc/150?img=65"
+              src="https://static.vecteezy.com/ti/vetor-gratis/p1/9292244-default-avatar-icon-vector-of-social-media-user-vetor.jpg"
               alt="Admin Avatar"
               className="w-10 h-10 rounded-full object-cover ring-2 ring-slate-100"
             />
@@ -92,6 +106,7 @@ export function AdminSidebar() {
           </Link>
           <a
             href="#"
+            onClick={(e) => { e.preventDefault(); handleLogout(); }}
             className="text-slate-500 text-sm px-4 py-2 flex items-center gap-3 hover:text-red-500 transition-colors rounded-lg"
           >
             <LogOut size={18} />

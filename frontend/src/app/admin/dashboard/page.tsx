@@ -1,15 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  Users, 
-  Package, 
-  TrendingUp, 
-  AlertCircle, 
-  CheckCircle2, 
-  Clock, 
-  Loader2, 
-  Tag 
+import {
+  Users,
+  Package,
+  TrendingUp,
+  Layers,
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+  Loader2,
+  Tag
 } from 'lucide-react';
 import api from '@/services/api';
 
@@ -44,7 +45,7 @@ export default function DashboardPage() {
     { label: 'Total de Produtos', value: counts.products.toString(), icon: Package, color: 'text-blue-600', bg: 'bg-blue-50' },
     { label: 'Usuários Ativos', value: counts.users.toString(), icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50' },
     { label: 'Categorias', value: counts.categories.toString(), icon: Tag, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Vendas Mês', value: 'R$ 0.00', icon: TrendingUp, color: 'text-slate-400', bg: 'bg-slate-50' },
+    { label: 'Valor em estoque', value: 'R$ 0.00', icon: Layers, color: 'text-slate-400', bg: 'bg-slate-50' },
   ];
 
   const recentActivity = [
@@ -68,7 +69,7 @@ export default function DashboardPage() {
           const Icon = stat.icon;
           return (
             <div key={stat.label} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow relative">
-                 {loading && <div className="absolute inset-x-0 bottom-0 h-1 bg-indigo-100 animate-pulse rounded-full" />}
+              {loading && <div className="absolute inset-x-0 bottom-0 h-1 bg-indigo-100 animate-pulse rounded-full" />}
               <div className="flex items-center justify-between mb-4">
                 <div className={`${stat.bg} ${stat.color} p-3 rounded-2xl`}>
                   <Icon size={24} />
@@ -136,8 +137,8 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="mt-8 pt-6 border-t border-white/10">
-                <p className="text-[10px] uppercase font-bold tracking-widest text-white/40">Uptime 30 dias</p>
-                <p className="text-2xl font-black mt-1">99.98%</p>
+              <p className="text-[10px] uppercase font-bold tracking-widest text-white/40">Uptime 30 dias</p>
+              <p className="text-2xl font-black mt-1">99.98%</p>
             </div>
           </div>
 

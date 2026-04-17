@@ -2,6 +2,11 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 import cors from 'cors';
 import type { Request, Response } from 'express';
 import { router } from './routes.js';
@@ -12,6 +17,7 @@ connectDB();
 const server = express();
 server.use(cors());
 server.use(express.json());
+server.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 server.use((req, res, next) => {
     console.log(`[${new Date().toLocaleTimeString()}] Recebi um ${req.method} em ${req.url}`);
