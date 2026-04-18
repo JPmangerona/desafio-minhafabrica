@@ -3,14 +3,17 @@ import Link from 'next/link';
 
 export default async function CatalogoPage({ params }: { params: { id: string } }) {
   const { id } = params;
+  const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000') + '/api/v1';
+
   let categoryData: any = null;
   let bdProducts: any[] = [];
 
   try {
     // Busca os produtos dessa categoria específica
-    const resProd = await fetch(`http://localhost:5000/product/category/${id}`, { cache: 'no-store' });
+    const resProd = await fetch(`${API_BASE}/products/category/${id}`, { cache: 'no-store' });
     if (resProd.ok) {
-      bdProducts = await resProd.json();
+      const json = await resProd.json();
+      bdProducts = json.data || [];
     }
   } catch (error) {
     console.error("Erro ao buscar produtos da categoria:", error);
@@ -20,9 +23,10 @@ export default async function CatalogoPage({ params }: { params: { id: string } 
   // Podemos extrair o nome da categoria no próprio produto se ele existir,
   // ou buscar a lista toda e filtrar.
   try {
-    const resCat = await fetch('http://localhost:5000/category', { cache: 'no-store' });
+    const resCat = await fetch(`${API_BASE}/categories`, { cache: 'no-store' });
     if (resCat.ok) {
-      const allCategories = await resCat.json();
+      const json = await resCat.json();
+      const allCategories = json.data || [];
       categoryData = allCategories.find((c: any) => c._id === id);
     }
   } catch (error) {
@@ -34,8 +38,8 @@ export default async function CatalogoPage({ params }: { params: { id: string } 
     id: p._id,
     name: p.nome,
     category: p.categoria?.nome || categoryData?.nome || 'Geral',
-    price: `R$ ${p.preco.toFixed(2).replace('.', ',')}`,
-    image: p.imagem_url || 'https://picsum.photos/seed/placeholder/400/533',
+    price: `R$ ${(p.preco || 0).toFixed(2).replace('.', ',')}`,
+    image: p.image_url || p.imagem_url || 'https://picsum.photos/seed/placeholder/400/533',
     badge: p.destaque ? 'Destaque' : null,
   }));
 

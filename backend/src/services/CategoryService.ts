@@ -1,4 +1,5 @@
 import { CategoryRepository } from "../repositories/CategoryRepository.js";
+import { AppError } from "../shared/errors/AppError.js";
 
 export class CategoryService {
     private categoryRepository = new CategoryRepository();
@@ -6,14 +7,14 @@ export class CategoryService {
     createCategory = async (categoryData: any) => {
         // Validação de número positivo
         if (categoryData.ordem !== undefined && categoryData.ordem <= 0) {
-            throw new Error("A ordem deve ser um número maior que zero.");
+            throw new AppError("A ordem deve ser um número maior que zero.", 400);
         }
 
         // Validação de unicidade
         if (categoryData.ordem !== undefined) {
             const existing = await this.categoryRepository.findByOrder(categoryData.ordem);
             if (existing) {
-                throw new Error(`A ordem #${categoryData.ordem} já está em uso por outra categoria.`);
+                throw new AppError(`A ordem #${categoryData.ordem} já está em uso por outra categoria.`, 400);
             }
         }
 
@@ -39,14 +40,14 @@ export class CategoryService {
     updateCategory = async (id: string, data: any) => {
         // Validação de número positivo
         if (data.ordem !== undefined && data.ordem <= 0) {
-            throw new Error("A ordem deve ser um número maior que zero.");
+            throw new AppError("A ordem deve ser um número maior que zero.", 400);
         }
 
         // Validação de unicidade (ignora a própria categoria)
         if (data.ordem !== undefined) {
             const existing = await this.categoryRepository.findByOrder(data.ordem);
             if (existing && existing._id.toString() !== id) {
-                throw new Error(`A ordem #${data.ordem} já está em uso por outra categoria.`);
+                throw new AppError(`A ordem #${data.ordem} já está em uso por outra categoria.`, 400);
             }
         }
 

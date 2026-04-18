@@ -6,6 +6,9 @@ export class LogoutController {
             httpOnly: true,
             sameSite: 'strict',
         });
-        return res.status(200).json({ message: 'Logout realizado com sucesso.' });
+        return res.status(200).json({ 
+            success: true,
+            data: { message: 'Logout realizado com sucesso.' } 
+        });
     }
 }

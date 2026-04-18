@@ -14,7 +14,7 @@ import {
   BookMarked,
   DollarSign
 } from 'lucide-react';
-import api from '@/services/api';
+import { dashboardService } from '@/services/dashboard.service';
 
 export default function DashboardPage() {
   const [counts, setCounts] = useState({ users: 0, products: 0, categories: 0, inventoryValue: 0 });
@@ -24,43 +24,10 @@ export default function DashboardPage() {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        
-        // Buscamos dados individualmente para não quebrar tudo se um falhar (ex: falta de permissão)
-        const fetchUserData = async () => {
-          try {
-            const res = await api.get('/user');
-            return res.data.length;
-          } catch { return 0; }
-        };
-
-        const fetchProductData = async () => {
-          try {
-            const res = await api.get('/product');
-            return res.data;
-          } catch { return []; }
-        };
-
-        const fetchCategoryData = async () => {
-          try {
-            const res = await api.get('/category');
-            return res.data.length;
-          } catch { return 0; }
-        };
-
-        const [userCount, products, categoryCount] = await Promise.all([
-          fetchUserData(),
-          fetchProductData(),
-          fetchCategoryData()
-        ]);
-
-        setCounts({
-          users: userCount,
-          products: products.length,
-          categories: categoryCount,
-          inventoryValue: products.reduce((acc: number, p: any) => acc + (p.custo || 0) * p.estoque, 0)
-        });
+        const data = await dashboardService.getStats();
+        setCounts(data);
       } catch (err) {
-        console.error('Erro geral ao processar estatísticas do dashboard');
+        console.error('Erro ao carregar estatísticas do dashboard:', err);
       } finally {
         setLoading(false);
       }

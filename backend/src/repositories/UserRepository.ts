@@ -27,6 +27,10 @@ export class UserRepository {
         return await User.findOne({ email, ativo: true });
     }
 
+    findByEmailWithPassword = async (email: string) => {
+        return await User.findOne({ email, ativo: true }).select('+password');
+    }
+
     updateUser = async (id: string, userData: any) => {
         return await User.findByIdAndUpdate(id, userData, { new: true });
     }

@@ -11,10 +11,16 @@ export class LoginController {
         const token = await userService.getToken(email, password);
         const user = await userService.getAuthenticatedUser(email, password);
 
-        if (!token || !user) {
-            return response.status(401).json({ message: 'Email ou senha inválidos' });
-        }
-
-        return response.status(200).json({ token, role: user.role, name: user.name });
+        // O UserService.getToken já lança AppError se falhar, 
+        // mas pegamos o user para retornar os dados adicionais.
+        
+        return response.status(200).json({
+            success: true,
+            data: { 
+                token, 
+                role: user?.role, 
+                name: user?.name 
+            }
+        });
     }
 }

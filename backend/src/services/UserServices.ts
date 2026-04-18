@@ -1,15 +1,31 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { UserRepository } from "../repositories/UserRepository.js";
+import { AppError } from "../shared/errors/AppError.js";
 
 export class UserService {
     private userRepository = new UserRepository();
 
     createUser = async (userData: any) => {
-        if (userData.password) {
-            const salt = await bcrypt.genSalt(10);
-            userData.password = await bcrypt.hash(userData.password, salt);
+        const { name, email, password } = userData;
+
+        if (!name || !email || !password) {
+            throw new AppError('Nome, email e senha são obrigatórios', 400);
         }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            throw new AppError('Formato de email inválido', 400);
+        }
+
+        const existingUser = await this.userRepository.findByEmail(email);
+        if (existingUser) {
+            throw new AppError('Este email já está em uso', 400);
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        userData.password = await bcrypt.hash(password, salt);
+        
         await this.userRepository.saveUser(userData);
     }
 
@@ -21,19 +37,19 @@ export class UserService {
         const user = await this.userRepository.findByName(name);
         
         if (!user) {
-            return { message: 'User not found' };
+            throw new AppError('Usuário não encontrado', 404);
         }
 
         if (user.role === 'admin') {
-            throw new Error('Não é permitido excluir usuários com a função de administrador.');
+            throw new AppError('Não é permitido excluir usuários com a função de administrador.', 403);
         }
 
-        const result = await this.userRepository.deleteByName(name);
-        return { message: 'User deleted' }
+        await this.userRepository.deleteByName(name);
+        return { message: 'Usuário excluído com sucesso' };
     }
 
     getAuthenticatedUser = async (email: string, password: string) => {
-        const user = await this.userRepository.findByEmail(email);
+        const user = await this.userRepository.findByEmailWithPassword(email);
 
         if (!user) {
             return null;
@@ -51,7 +67,7 @@ export class UserService {
         const user = await this.getAuthenticatedUser(email, password);
 
         if (!user) {
-            return null;
+            throw new AppError('Email ou senha inválidos', 401);
         }
 
         const secret = process.env.JWT_SECRET as string;
@@ -64,8 +80,19 @@ export class UserService {
         const users = await this.userRepository.findAll();
         const user = users.find((u: any) => u._id.toString() === id);
 
-        if (user && user.role === 'admin' && userData.ativo === false) {
-            throw new Error('Não é permitido desativar um usuário com a função de administrador.');
+        if (!user) {
+            throw new AppError('Usuário não encontrado', 404);
+        }
+
+        if (user.role === 'admin' && userData.ativo === false) {
+            throw new AppError('Não é permitido desativar um usuário com a função de administrador.', 403);
+        }
+
+        if (userData.email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(userData.email)) {
+                throw new AppError('Formato de email inválido', 400);
+            }
         }
 
         // Se uma nova senha for fornecida, faz o hashing dela

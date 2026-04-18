@@ -18,7 +18,7 @@ import {
   CheckCircle2,
   XCircle,
 } from 'lucide-react';
-import api from '@/services/api';
+import { categoryService } from '@/services/category.service';
 import { Category } from '@/types';
 
 export default function CatalogosPage() {
@@ -40,8 +40,8 @@ export default function CatalogosPage() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/admin/category');
-      setCategories(response.data);
+      const data = await categoryService.getAllAdmin();
+      setCategories(data);
     } catch (err: any) {
       setError('Erro ao carregar os catálogos.');
     } finally {
@@ -85,13 +85,9 @@ export default function CatalogosPage() {
       if (imageFile) formData.append('imagem', imageFile);
 
       if (editingId) {
-        await api.put(`/category/${editingId}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        await categoryService.update(editingId, formData);
       } else {
-        await api.post('/category', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        await categoryService.create(formData);
       }
 
       await fetchCategories();
@@ -101,6 +97,7 @@ export default function CatalogosPage() {
       setImageFile(null);
       setImagePreview(null);
     } catch (err: any) {
+      // O interceptor não altera o formato do erro, então acessamos err.response.data.message
       const message = err.response?.data?.message || `Erro ao ${editingId ? 'atualizar' : 'criar'} catálogo.`;
       setModalError(message);
     }

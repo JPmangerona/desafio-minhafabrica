@@ -5,8 +5,9 @@ import { CategoryController } from "./controllers/CategoryController.js";
 import { ProductController } from "./controllers/ProductController.js";
 import { SearchController } from "./controllers/SearchController.js";
 import { LogoutController } from "./controllers/LogoutController.js";
-import { authenticated } from "./middleware/authenticated.js";
-import { authorized } from "./middleware/authorized.js";
+import { DashboardController } from "./controllers/DashboardController.js";
+import { authenticated } from "./shared/middlewares/authenticated.js";
+import { authorized } from "./shared/middlewares/authorized.js";
 import { upload } from "./config/multer.js";
 
 export const router = Router();
@@ -16,35 +17,40 @@ const categoryController = new CategoryController();
 const productController = new ProductController();
 const searchController = new SearchController();
 const logoutController = new LogoutController();
+const dashboardController = new DashboardController();
 
-// Login
-router.post('/login', loginController.login);
+// --- API V1 ---
+const v1Prefix = "/api/v1";
+
+// Autenticação
+router.post(`${v1Prefix}/auth/login`, loginController.login);
+router.post(`${v1Prefix}/auth/logout`, logoutController.logout);
 
 // Busca Global
-router.get('/search', searchController.search);
+router.get(`${v1Prefix}/search`, searchController.search);
+
+// Dashboard (Apenas Admin)
+router.get(`${v1Prefix}/dashboard`, authenticated, authorized(['admin']), dashboardController.getStats);
 
 // Usuários (Apenas Admin)
-router.post('/user', authenticated, authorized(['admin']), userController.createUser);
-router.get('/user', authenticated, authorized(['admin']), userController.getAllUsers);
-router.put('/user/:id', authenticated, authorized(['admin']), userController.updateUser);
-router.delete('/user', authenticated, authorized(['admin']), userController.deleteUser);
+router.get(`${v1Prefix}/users`, authenticated, authorized(['admin']), userController.getAllUsers);
+router.post(`${v1Prefix}/users`, authenticated, authorized(['admin']), userController.createUser);
+router.put(`${v1Prefix}/users/:id`, authenticated, authorized(['admin']), userController.updateUser);
+router.delete(`${v1Prefix}/users`, authenticated, authorized(['admin']), userController.deleteUser);
 
-// Categorias
-router.post('/category', authenticated, authorized(['admin', 'editor']), upload.single('imagem'), categoryController.create);
-router.get('/admin/category', authenticated, authorized(['admin', 'editor']), categoryController.listAdmin);
-router.get('/category', categoryController.list); // Público para a vitrine
-router.put('/category/:id', authenticated, authorized(['admin', 'editor']), upload.single('imagem'), categoryController.update);
-router.delete('/category/:id', authenticated, authorized(['admin']), categoryController.delete);
+// Categorias (Admin/Editor pode criar/editar, Público pode listar)
+router.get(`${v1Prefix}/categories`, categoryController.list); // Público
+router.get(`${v1Prefix}/admin/categories`, authenticated, authorized(['admin', 'editor']), categoryController.listAdmin);
+router.post(`${v1Prefix}/categories`, authenticated, authorized(['admin', 'editor']), upload.single('imagem'), categoryController.create);
+router.put(`${v1Prefix}/categories/:id`, authenticated, authorized(['admin', 'editor']), upload.single('imagem'), categoryController.update);
+router.delete(`${v1Prefix}/categories/:id`, authenticated, authorized(['admin']), categoryController.delete);
 
-// Produtos
-router.post('/product', authenticated, authorized(['admin', 'editor']), upload.single('imagem'), productController.create);
-router.get('/admin/product', authenticated, authorized(['admin', 'editor']), productController.listAdmin);
-router.get('/product', productController.list); // Público para a vitrine
-router.get('/product/category/:id', productController.listByCategory); // Público
-router.put('/product/:id', authenticated, authorized(['admin', 'editor']), upload.single('imagem'), productController.update);
-router.delete('/product/:id', authenticated, authorized(['admin']), productController.delete);
-
-// Logout
-router.post('/logout', logoutController.logout);
+// Produtos (Admin/Editor pode criar/editar, Público pode listar)
+router.get(`${v1Prefix}/products`, productController.list); // Público
+router.get(`${v1Prefix}/products/category/:id`, productController.listByCategory); // Público
+router.get(`${v1Prefix}/admin/products`, authenticated, authorized(['admin', 'editor']), productController.listAdmin);
+router.post(`${v1Prefix}/products`, authenticated, authorized(['admin', 'editor']), upload.single('imagem'), productController.create);
+router.put(`${v1Prefix}/products/:id`, authenticated, authorized(['admin', 'editor']), upload.single('imagem'), productController.update);
+router.delete(`${v1Prefix}/products/:id`, authenticated, authorized(['admin']), productController.delete);
 
 export default router;

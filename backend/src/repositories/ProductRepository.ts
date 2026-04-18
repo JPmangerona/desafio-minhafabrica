@@ -29,4 +29,8 @@ export class ProductRepository {
     delete = async (id: string) => {
         return await Product.findByIdAndDelete(id);
     }
+
+    getModel = () => {
+        return Product;
+    }
 }

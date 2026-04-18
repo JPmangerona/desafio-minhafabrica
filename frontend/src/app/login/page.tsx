@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { LogIn, Lock, Mail, Loader2, ArrowLeft } from 'lucide-react';
-import api from '@/services/api';
+import { authService } from '@/services/auth.service';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -19,15 +19,16 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const response = await api.post('/login', { email, password });
-      const { token, role, name } = response.data;
-
-      if (token) {
+      const response = await authService.login({ email, password });
+      
+      if (response.success) {
+        const { token, role, name } = response.data;
+        
         localStorage.setItem('token', token);
         localStorage.setItem('user_role', role);
         localStorage.setItem('user_name', name);
-        localStorage.setItem('user_email', email); // Salva o email para identificar o usuário logado
-        // Por enquanto redireciona para o admin dashboard
+        localStorage.setItem('user_email', email); 
+        
         router.push('/admin/dashboard');
       }
     } catch (err: any) {

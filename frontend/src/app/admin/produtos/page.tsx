@@ -17,7 +17,8 @@ import {
   Loader2,
   AlertCircle
 } from 'lucide-react';
-import api from '@/services/api';
+import { productService } from '@/services/product.service';
+import { categoryService } from '@/services/category.service';
 import { Product, Category } from '@/types';
 
 export default function ProdutosPage() {
@@ -39,8 +40,8 @@ export default function ProdutosPage() {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/admin/product');
-      setProducts(response.data);
+      const data = await productService.getAllAdmin();
+      setProducts(data);
     } catch (err: any) {
       setError('Erro ao carregar catálogo de produtos.');
     } finally {
@@ -50,8 +51,8 @@ export default function ProdutosPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await api.get('/category');
-      setCategories(response.data);
+      const data = await categoryService.getAllPublic();
+      setCategories(data);
     } catch (err: any) {
       console.error('Erro ao carregar categorias', err);
     }
@@ -96,13 +97,9 @@ export default function ProdutosPage() {
       if (imageFile) formData.append('imagem', imageFile);
 
       if (editingId) {
-        await api.put(`/product/${editingId}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        await productService.update(editingId, formData);
       } else {
-        await api.post('/product', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        await productService.create(formData);
       }
 
       await fetchProducts();
@@ -112,7 +109,8 @@ export default function ProdutosPage() {
       setImageFile(null);
       setImagePreview(null);
     } catch (err: any) {
-      alert(`Erro ao ${editingId ? 'atualizar' : 'cadastrar'} produto.`);
+      const message = err.response?.data?.message || `Erro ao ${editingId ? 'atualizar' : 'cadastrar'} produto.`;
+      alert(message);
     }
   };
 
@@ -135,7 +133,7 @@ export default function ProdutosPage() {
   const handleDelete = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir este produto?')) {
       try {
-        await api.delete(`/product/${id}`);
+        await productService.delete(id);
         await fetchProducts();
       } catch (err) {
         alert('Erro ao excluir produto.');

@@ -17,8 +17,9 @@ import {
   ShieldCheck,
   Users
 } from 'lucide-react';
-import api from '@/services/api';
+import { userService } from '@/services/user.service';
 import { User } from '@/types';
+import { useRouter } from 'next/navigation';
 
 // Mapeamento de cores e labels para as roles do sistema
 const roleConfig: Record<string, { label: string, color: string }> = {
@@ -31,6 +32,7 @@ const roleConfig: Record<string, { label: string, color: string }> = {
 const roles = Object.keys(roleConfig);
 
 export default function UsuariosPage() {
+  const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -44,8 +46,8 @@ export default function UsuariosPage() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/user');
-      setUsers(response.data);
+      const data = await userService.getAll();
+      setUsers(data);
     } catch (err: any) {
       setError('Não foi possível carregar os usuários.');
       console.error(err);
@@ -75,14 +77,8 @@ export default function UsuariosPage() {
   );
 
   const handleCreate = async () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(newUser.email)) {
-      alert('Por favor, informe um e-mail válido (exemplo@dominio.com)');
-      return;
-    }
-
     try {
-      await api.post('/user', newUser);
+      await userService.create(newUser);
       await fetchUsers(); // Recarrega a lista
       setShowModal(false);
       setNewUser({ name: '', email: '', password: '', role: 'visualizador' });
@@ -97,8 +93,7 @@ export default function UsuariosPage() {
     }
 
     try {
-      // O endpoint de deleteByName espera o nome no corpo da requisição (body)
-      await api.delete('/user', { data: { name: user.name } });
+      await userService.delete(user.name);
       await fetchUsers();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Erro ao excluir usuário');
@@ -108,14 +103,8 @@ export default function UsuariosPage() {
   const handleUpdate = async () => {
     if (!editingUser) return;
     
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(editingUser.email)) {
-      alert('Por favor, informe um e-mail válido (exemplo@dominio.com)');
-      return;
-    }
-
     try {
-      await api.put(`/user/${editingUser._id}`, editingUser);
+      await userService.update(editingUser._id, editingUser);
       
       // Sincroniza o localStorage se o usuário editado for o mesmo que está logado
       if (editingUser.email === localStorage.getItem('user_email')) {

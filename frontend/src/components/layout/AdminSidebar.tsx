@@ -3,16 +3,14 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import api from '@/services/api';
+import { authService } from '@/services/auth.service';
 import {
   LayoutDashboard,
   Package,
   Users,
   BookMarked,
-  Settings,
-  Plus,
   Store,
-  LogOut
+  LogOut,
 } from 'lucide-react';
 
 const navItems = [
@@ -20,7 +18,6 @@ const navItems = [
   { href: '/admin/produtos', icon: Package, label: 'Produtos' },
   { href: '/admin/catalogos', icon: BookMarked, label: 'Catálogos' },
   { href: '/admin/usuarios', icon: Users, label: 'Usuários' },
-  //  { href: '/admin/configuracoes', icon: Settings, label: 'Configurações' },
 ];
 
 export function AdminSidebar() {
@@ -44,13 +41,14 @@ export function AdminSidebar() {
 
   const handleLogout = async () => {
     try {
-      await api.post('/logout');
+      await authService.logout();
     } catch (_) {
       // ignora erro no endpoint, faz logout local de qualquer jeito
     } finally {
       localStorage.removeItem('token');
       localStorage.removeItem('user_role');
       localStorage.removeItem('user_name');
+      localStorage.removeItem('user_email');
       document.cookie = 'token=; Max-Age=0; path=/';
       router.push('/login');
     }

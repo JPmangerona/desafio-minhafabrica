@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Instância centralizada do Axios
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000',
+    baseURL: (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000') + '/api/v1',
     headers: {
         'Content-Type': 'application/json',
     },
@@ -21,13 +21,25 @@ api.interceptors.request.use((config) => {
     return Promise.reject(error);
 });
 
-// Interceptor para respostas Globais (Redirecionamento Automático 401)
-api.interceptors.response.use((response) => response, (error) => {
-  if (typeof window !== 'undefined' && error.response && error.response.status === 401) {
-    localStorage.removeItem('token');
-    window.location.href = '/login';
+// Interceptor para respostas Globais (Tratamento de Sucesso e 401)
+api.interceptors.response.use(
+  (response) => {
+    // Se a resposta segue o padrão { success, data }, retornamos apenas o data para simplificar no frontend
+    if (response.data && response.data.success === true) {
+      return response; // Mantemos o objeto da resposta, mas as chamadas usarão res.data.data
+    }
+    return response;
+  }, 
+  (error) => {
+    if (typeof window !== 'undefined' && error.response && error.response.status === 401) {
+      localStorage.removeItem('token');
+      // Evita loops infinitos se já estiver na página de login
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
   }
-  return Promise.reject(error);
-});
+);
 
 export default api;

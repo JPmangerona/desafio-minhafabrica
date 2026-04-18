@@ -11,6 +11,7 @@ import cors from 'cors';
 import type { Request, Response } from 'express';
 import { router } from './routes.js';
 import { connectDB } from './config/database.js';
+import { errorMiddleware } from './shared/middlewares/errorMiddleware.js';
 
 connectDB();
 
@@ -24,11 +25,14 @@ server.use((req, res, next) => {
     next();
 });
 
-server.use(router)
+server.use(router);
 
 server.get('/', (request: Request, response: Response) => {
     return response.status(200).json({ message: 'Hello World!' });
 });
+
+// Middleware de Erro Global (Deve vir depois das rotas)
+server.use(errorMiddleware);
 
 server.listen(5000, () => {
     console.log('Server is running on port 5000');

@@ -2,21 +2,26 @@ import { StorefrontHeader } from '@/components/layout/StorefrontHeader';
 import Link from 'next/link';
 
 export default async function StorefrontHome() {
+  const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000') + '/api/v1';
+  
   let bdCategories: any[] = [];
   let bdProducts: any[] = [];
+  
   try {
-    const resCat = await fetch('http://localhost:5000/category', { cache: 'no-store' });
+    const resCat = await fetch(`${API_BASE}/categories`, { cache: 'no-store' });
     if (resCat.ok) {
-      bdCategories = await resCat.json();
+      const json = await resCat.json();
+      bdCategories = json.data || [];
     }
   } catch (error) {
     console.error("Erro ao buscar catálogos:", error);
   }
 
   try {
-    const resProd = await fetch('http://localhost:5000/product', { cache: 'no-store' });
+    const resProd = await fetch(`${API_BASE}/products`, { cache: 'no-store' });
     if (resProd.ok) {
-      bdProducts = await resProd.json();
+      const json = await resProd.json();
+      bdProducts = json.data || [];
     }
   } catch (error) {
     console.error("Erro ao buscar produtos:", error);
