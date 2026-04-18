@@ -23,12 +23,13 @@ import { Category } from '@/types';
 
 export default function CatalogosPage() {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [search, setSearch] = useState('');
+   const [loading, setLoading] = useState(true);
+   const [error, setError] = useState('');
+   const [modalError, setModalError] = useState('');
+   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [newCategory, setNewCategory] = useState({ nome: '', descricao: '', ordem: 0 });
+  const [newCategory, setNewCategory] = useState({ nome: '', descricao: '', ordem: 0, ativo: true });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [sortByOrder, setSortByOrder] = useState(false);
@@ -39,7 +40,7 @@ export default function CatalogosPage() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/category');
+      const response = await api.get('/admin/category');
       setCategories(response.data);
     } catch (err: any) {
       setError('Erro ao carregar os catálogos.');
@@ -80,6 +81,7 @@ export default function CatalogosPage() {
       formData.append('nome', newCategory.nome);
       formData.append('descricao', newCategory.descricao);
       formData.append('ordem', String(newCategory.ordem));
+      formData.append('ativo', String(newCategory.ativo));
       if (imageFile) formData.append('imagem', imageFile);
 
       if (editingId) {
@@ -99,7 +101,8 @@ export default function CatalogosPage() {
       setImageFile(null);
       setImagePreview(null);
     } catch (err: any) {
-      alert(`Erro ao ${editingId ? 'atualizar' : 'criar'} catálogo.`);
+      const message = err.response?.data?.message || `Erro ao ${editingId ? 'atualizar' : 'criar'} catálogo.`;
+      setModalError(message);
     }
   };
 
@@ -109,6 +112,7 @@ export default function CatalogosPage() {
       nome: cat.nome,
       descricao: cat.descricao || '',
       ordem: cat.ordem,
+      ativo: cat.ativo !== undefined ? cat.ativo : true,
     });
     setImagePreview(cat.imagem_url || null);
     setImageFile(null);
@@ -148,7 +152,8 @@ export default function CatalogosPage() {
           <button
             onClick={() => {
               setEditingId(null);
-              setNewCategory({ nome: '', descricao: '', ordem: 0 });
+              setNewCategory({ nome: '', descricao: '', ordem: 0, ativo: true });
+              setModalError('');
               setImagePreview(null);
               setImageFile(null);
               setShowModal(true);
@@ -297,17 +302,19 @@ export default function CatalogosPage() {
                           </span>
                         </td>
                         <td className="px-8 py-5">
-                          {cat.ativo ? (
-                            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full">
-                              <ToggleRight size={14} />
-                              Ativo
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-full">
-                              <ToggleLeft size={14} />
-                              Inativo
-                            </span>
-                          )}
+                          <div className="flex items-center gap-2">
+                             {cat.ativo ? (
+                               <>
+                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                 <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600">Ativo</span>
+                               </>
+                             ) : (
+                               <>
+                                 <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Inativo</span>
+                               </>
+                             )}
+                          </div>
                         </td>
                         <td className="px-8 py-5 text-right">
                           <div className="flex items-center justify-end gap-2 text-slate-400">
@@ -423,17 +430,45 @@ export default function CatalogosPage() {
                 />
               </div>
 
+              {modalError && (
+                <div className="flex items-center gap-2 text-red-500 text-xs font-bold mb-1 animate-in fade-in slide-in-from-top-1">
+                  <AlertCircle size={14} />
+                  <span>{modalError}</span>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <label className="text-[10px] uppercase tracking-widest font-bold text-slate-500 block">
                   Ordem de Exibição
                 </label>
                 <input
                   type="number"
-                  placeholder="0"
+                  min="1"
+                  placeholder="1"
                   value={newCategory.ordem}
-                  onChange={(e) => setNewCategory({ ...newCategory, ordem: Number(e.target.value) })}
-                  className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-[#1A237E]/30 transition-all text-sm"
+                  onChange={(e) => {
+                    setModalError('');
+                    setNewCategory({ ...newCategory, ordem: Number(e.target.value) });
+                  }}
+                  className={`w-full bg-slate-50 border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 transition-all text-sm ${modalError ? 'focus:ring-red-500/30 bg-red-50/50' : 'focus:ring-[#1A237E]/30'}`}
                 />
+              </div>
+
+              {/* Status Toggle */}
+              <div className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl">
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800">Status do Catálogo</h4>
+                  <p className="text-xs text-slate-500">Define se o catálogo está visível no site</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={newCategory.ativo}
+                    onChange={(e) => setNewCategory({ ...newCategory, ativo: e.target.checked })}
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                </label>
               </div>
 
               {/* Image Upload */}

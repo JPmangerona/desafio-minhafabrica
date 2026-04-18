@@ -13,6 +13,7 @@ export class ProductController {
             if (data.custo) data.custo = Number(data.custo);
             if (data.estoque) data.estoque = Number(data.estoque);
             if (data.destaque !== undefined) data.destaque = data.destaque === 'true';
+            if (data.ativo !== undefined) data.ativo = data.ativo === 'true';
 
             const imagem_url = req.file
                 ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
@@ -27,7 +28,12 @@ export class ProductController {
     }
 
     list = async (req: Request, res: Response) => {
-        const products = await this.productService.getAllProducts();
+        const products = await this.productService.getActiveProductsForPublic();
+        return res.status(200).json(products);
+    }
+
+    listAdmin = async (req: Request, res: Response) => {
+        const products = await this.productService.getAllProductsForAdmin();
         return res.status(200).json(products);
     }
 
@@ -40,7 +46,7 @@ export class ProductController {
     delete = async (req: Request, res: Response) => {
         const id = req.params.id as string;
         await this.productService.deleteProduct(id);
-        return res.status(200).json({ message: "Produto removido (Soft Delete)" });
+        return res.status(200).json({ message: "Produto removido permanentemente" });
     }
 
     update = async (req: Request, res: Response) => {
@@ -53,6 +59,7 @@ export class ProductController {
             if (data.custo) data.custo = Number(data.custo);
             if (data.estoque) data.estoque = Number(data.estoque);
             if (data.destaque !== undefined) data.destaque = data.destaque === 'true';
+            if (data.ativo !== undefined) data.ativo = data.ativo === 'true';
 
             if (req.file) {
                 data.imagem_url = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;

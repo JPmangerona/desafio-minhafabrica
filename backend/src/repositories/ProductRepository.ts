@@ -7,6 +7,10 @@ export class ProductRepository {
     }
 
     findAll = async () => {
+        return await Product.find().populate('categoria');
+    }
+
+    findAllActive = async () => {
         return await Product.find({ ativo: true }).populate('categoria');
     }
 
@@ -23,6 +27,6 @@ export class ProductRepository {
     }
 
     delete = async (id: string) => {
-        return await Product.findByIdAndUpdate(id, { ativo: false });
+        return await Product.findByIdAndDelete(id);
     }
 }

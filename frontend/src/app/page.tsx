@@ -1,96 +1,6 @@
 import { StorefrontHeader } from '@/components/layout/StorefrontHeader';
 import Link from 'next/link';
 
-const fallbackCategories = [
-  {
-    nome: 'Mobiliário Arquitetural',
-    count: '124 itens',
-    imagem_url: '',
-  },
-  {
-    nome: 'Iluminação Ambiente',
-    count: '86 itens',
-    imagem_url: '',
-  },
-  {
-    nome: 'Decoração Artesanal',
-    count: '210 itens',
-    imagem_url: '',
-  },
-  {
-    nome: 'Têxteis Premium',
-    count: '54 itens',
-    imagem_url: '',
-  },
-];
-
-const fallbackProducts = [
-  {
-    id: 1,
-    name: 'Poltrona Esfera',
-    category: 'Mobiliário',
-    price: 'R$ 9.250,00',
-    image: '',
-    badge: null,
-  },
-  {
-    id: 2,
-    name: 'Luminária Pendente Onix',
-    category: 'Iluminação',
-    price: 'R$ 4.600,00',
-    image: '',
-    badge: 'Limitado',
-  },
-  {
-    id: 3,
-    name: 'Mesa de Apoio Travertino',
-    category: 'Sala de Estar',
-    price: 'R$ 6.200,00',
-    image: '',
-    badge: null,
-  },
-  {
-    id: 4,
-    name: 'Tapete Textura Lã',
-    category: 'Têxteis',
-    price: 'R$ 12.000,00',
-    image: '',
-    badge: null,
-  },
-  {
-    id: 5,
-    name: 'Sofá Modular Cleo',
-    category: 'Mobiliário',
-    price: 'R$ 28.500,00',
-    image: '',
-    badge: 'Novo',
-  },
-  {
-    id: 6,
-    name: 'Vaso Cerâmica Orgânica',
-    category: 'Decoração',
-    price: 'R$ 890,00',
-    image: '',
-    badge: null,
-  },
-  {
-    id: 7,
-    name: 'Luminária de Chão Arc',
-    category: 'Iluminação',
-    price: 'R$ 3.400,00',
-    image: '',
-    badge: null,
-  },
-  {
-    id: 8,
-    name: 'Cadeira Barcelona',
-    category: 'Mobiliário',
-    price: 'R$ 7.800,00',
-    image: '',
-    badge: 'Limitado',
-  },
-];
-
 export default async function StorefrontHome() {
   let bdCategories: any[] = [];
   let bdProducts: any[] = [];
@@ -117,47 +27,39 @@ export default async function StorefrontHome() {
   const heroData = heroCat ? {
     id: heroCat._id,
     title: heroCat.nome,
-    description: heroCat.descricao || 'Descubra mobiliário escultural e objetos curados desenvolvidos para transformar seu espaço em uma galeria particular.',
+    description: heroCat.descricao || '.',
     image: heroCat.imagem_url || ''
   } : {
     id: null,
     title: 'Coleção Overzide',
-    description: 'Descubra mobiliário escultural e objetos curados desenvolvidos para transformar seu espaço em uma galeria particular.',
+    description: '.',
     image: ''
   };
 
   // Bento Grid (Catálogos ordem 2, 3, 4, 5)
-  // Prepara os 4 itens para a grid. Se não existir, preenchemos com os placeholders originais.
-  const displayCategories = [2, 3, 4, 5].map((order, index) => {
+  // Prepara os itens para a grid de acordo com a ordem definida no banco
+  const displayCategories = [2, 3, 4, 5].map((order) => {
     const cat = bdCategories.find((c) => c.ordem === order && c.ativo);
     if (cat) {
       return {
         id: cat._id,
         name: cat.nome,
-        count: cat.descricao || 'Ver coleção', // Usamos a descrição como um "texto extra"
-        image: cat.imagem_url || fallbackCategories[index].imagem_url,
+        count: cat.descricao || 'Ver coleção',
+        image: cat.imagem_url || '',
       };
     }
-    return {
-      id: null,
-      name: fallbackCategories[index].nome,
-      count: fallbackCategories[index].count,
-      image: fallbackCategories[index].imagem_url,
-    };
+    return null; // Mantemos null para preservar os índices da grid
   });
 
   // Filtra apenas produtos com destaque == true
-  const destaqueProducts = bdProducts.filter(p => p.destaque === true).map(p => ({
+  const displayProducts = bdProducts.filter(p => p.destaque === true).map(p => ({
     id: p._id,
     name: p.nome,
     category: p.categoria?.nome || 'Geral',
-    price: `R$ ${p.preco.toFixed(2).replace('.', ',')}`, // Formatação simples BRL
-    image: p.imagem_url || fallbackProducts[0].image,
+    price: `R$ ${p.preco.toFixed(2).replace('.', ',')}`,
+    image: p.imagem_url || '',
     badge: null,
   }));
-
-  // Se não houver nenhum produto em destaque ainda, usamos os placeholders para a loja não ficar vazia
-  const displayProducts = destaqueProducts.length > 0 ? destaqueProducts : fallbackProducts;
 
   return (
     <div className="min-h-screen bg-white">
@@ -220,7 +122,7 @@ export default async function StorefrontHome() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Column 1 — tall */}
-          {displayCategories[0].id ? (
+          {displayCategories[0]?.id ? (
             <Link href={`/catalogos/${displayCategories[0].id}`} className="group relative aspect-square md:aspect-auto md:h-[500px] rounded-[3rem] overflow-hidden bg-surface-container-low cursor-pointer block">
               {displayCategories[0].image ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
@@ -239,26 +141,34 @@ export default async function StorefrontHome() {
               </div>
             </Link>
           ) : (
-            <div className="group relative aspect-square md:aspect-auto md:h-[500px] rounded-[3rem] overflow-hidden bg-surface-container-low cursor-pointer block">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={displayCategories[0].image}
-                alt={displayCategories[0].name}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-black/5 group-hover:bg-black/20 transition-all" />
-              <div className="absolute bottom-10 left-10">
-                <h3 className="text-2xl font-bold text-white mb-1">{displayCategories[0].name}</h3>
-                <p className="text-white/80 text-sm uppercase tracking-widest">{displayCategories[0].count}</p>
+            <div className="group relative aspect-square md:aspect-auto md:h-[500px] rounded-[3rem] overflow-hidden bg-[#dddddb] border border-dashed border-slate-300 flex items-center justify-center">
+              <div className="text-center">
+                <p className="text-slate-500 text-3xl font-black italic tracking-tighter opacity-40">#2</p>
               </div>
             </div>
           )}
 
           {/* Column 2 — two halves */}
           <div className="flex flex-col gap-6">
-            {displayCategories.slice(1, 3).map((cat) => {
-              const content = (
-                <>
+            {displayCategories.slice(1, 3).map((cat, idx) => {
+              const orderLabel = idx === 0 ? "#3" : "#4";
+
+              if (!cat) {
+                return (
+                  <div key={`empty-${idx}`} className="group relative h-[238px] rounded-[3rem] overflow-hidden bg-[#dddddb] border border-dashed border-slate-300 flex items-center justify-center">
+                    <div className="text-center">
+                      <p className="text-slate-500 text-3xl font-black italic tracking-tighter opacity-40">{orderLabel}</p>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <Link
+                  key={cat.id}
+                  href={`/catalogos/${cat.id}`}
+                  className="group relative h-[238px] rounded-[3rem] overflow-hidden bg-surface-container-low cursor-pointer block"
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={cat.image}
@@ -270,34 +180,13 @@ export default async function StorefrontHome() {
                     <h3 className="text-xl font-bold text-white mb-1">{cat.name}</h3>
                     <p className="text-white/80 text-xs uppercase tracking-widest line-clamp-1">{cat.count}</p>
                   </div>
-                </>
-              );
-
-              if (cat.id) {
-                return (
-                  <Link
-                    key={cat.name}
-                    href={`/catalogos/${cat.id}`}
-                    className="group relative h-[238px] rounded-[3rem] overflow-hidden bg-surface-container-low cursor-pointer block"
-                  >
-                    {content}
-                  </Link>
-                );
-              }
-
-              return (
-                <div
-                  key={cat.name}
-                  className="group relative h-[238px] rounded-[3rem] overflow-hidden bg-surface-container-low cursor-pointer block"
-                >
-                  {content}
-                </div>
+                </Link>
               );
             })}
           </div>
 
           {/* Column 3 — tall */}
-          {displayCategories[3].id ? (
+          {displayCategories[3]?.id ? (
             <Link href={`/catalogos/${displayCategories[3].id}`} className="group relative aspect-square md:aspect-auto md:h-[500px] rounded-[3rem] overflow-hidden bg-surface-container-low cursor-pointer block">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -312,17 +201,9 @@ export default async function StorefrontHome() {
               </div>
             </Link>
           ) : (
-            <div className="group relative aspect-square md:aspect-auto md:h-[500px] rounded-[3rem] overflow-hidden bg-surface-container-low cursor-pointer block">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={displayCategories[3].image}
-                alt={displayCategories[3].name}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-black/5 group-hover:bg-black/20 transition-all" />
-              <div className="absolute bottom-10 left-10">
-                <h3 className="text-2xl font-bold text-white mb-1">{displayCategories[3].name}</h3>
-                <p className="text-white/80 text-sm uppercase tracking-widest">{displayCategories[3].count}</p>
+            <div className="group relative aspect-square md:aspect-auto md:h-[500px] rounded-[3rem] overflow-hidden bg-[#dddddb] border border-dashed border-slate-300 flex items-center justify-center">
+              <div className="text-center">
+                <p className="text-slate-500 text-3xl font-black italic tracking-tighter opacity-40">#5</p>
               </div>
             </div>
           )}
@@ -398,7 +279,7 @@ export default async function StorefrontHome() {
               <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-6 py-3 flex items-center gap-4 shadow-2xl">
                 <input
                   className="bg-transparent border-none outline-none text-white placeholder:text-white/60 w-full text-sm"
-                  placeholder="Seu endereço de e-mail"
+                  placeholder="Funcionalidade em desenvolvimento"
                   type="email"
                 />
                 <button className="bg-white text-[#1A237E] font-black uppercase tracking-widest text-[10px] px-6 py-2 rounded-full hover:bg-slate-100 transition-all active:scale-95 shrink-0">

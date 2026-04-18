@@ -7,7 +7,15 @@ export class CategoryRepository {
     }
 
     findAll = async () => {
+        return await Category.find().sort({ ordem: 1 });
+    }
+
+    findAllActive = async () => {
         return await Category.find({ ativo: true }).sort({ ordem: 1 });
+    }
+
+    findByOrder = async (ordem: number) => {
+        return await Category.findOne({ ordem });
     }
 
     findById = async (id: string) => {
@@ -19,6 +27,6 @@ export class CategoryRepository {
     }
 
     delete = async (id: string) => {
-        return await Category.findByIdAndUpdate(id, { ativo: false });
+        return await Category.findByIdAndDelete(id);
     }
 }

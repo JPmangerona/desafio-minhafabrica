@@ -50,7 +50,9 @@ export default function LoginPage() {
             <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
             Voltar para a loja
           </Link>
-          <h1 className="text-5xl font-bold tracking-tighter mb-6"><span className="text-[#fa6c1a]">Minha</span><span className="text-[#fffff]">Fábrica</span><span className="text-[#737373]">.com</span></h1>
+          <h1 className="text-5xl font-bold tracking-tighter mb-6">
+            <span className="text-[#fa6c1a]">Minha</span><span className="text-[#ffffff]">Fábrica</span><span className="text-[#737373]">.com</span>
+          </h1>
           <p className="text-xl text-white/80 font-light leading-relaxed">
             Gestão simplificada, exposição premium. A plataforma definitiva para o seu catálogo industrial.
           </p>
@@ -61,7 +63,9 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center p-8 bg-white md:bg-transparent">
         <div className="w-full max-w-[400px]">
           <div className="mb-10 block md:hidden">
-            <h1 className="text-3xl font-bold tracking-tighter text-[#1A237E]">MinhaFábrica</h1>
+            <h1 className="text-3xl font-bold tracking-tighter">
+              <span className="text-[#fa6c1a]">Minha</span><span className="text-[#1A237E]">Fábrica</span><span className="text-[#737373]">.com</span>
+            </h1>
           </div>
 
           <div className="mb-10">

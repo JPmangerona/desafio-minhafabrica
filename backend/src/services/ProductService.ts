@@ -13,8 +13,12 @@ export class ProductService {
         return await this.productRepository.save(productData);
     }
 
-    getAllProducts = async () => {
+    getAllProductsForAdmin = async () => {
         return await this.productRepository.findAll();
+    }
+
+    getActiveProductsForPublic = async () => {
+        return await this.productRepository.findAllActive();
     }
 
     getProductsByCategory = async (categoryId: string) => {

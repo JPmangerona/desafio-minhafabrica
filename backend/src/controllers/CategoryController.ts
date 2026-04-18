@@ -8,6 +8,7 @@ export class CategoryController {
         try {
             const data = { ...req.body };
             if (data.ordem) data.ordem = Number(data.ordem);
+            if (data.ativo !== undefined) data.ativo = data.ativo === 'true';
 
             const imagem_url = req.file
                 ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
@@ -21,14 +22,19 @@ export class CategoryController {
     }
 
     list = async (req: Request, res: Response) => {
-        const categories = await this.categoryService.getAllCategories();
+        const categories = await this.categoryService.getActiveCategoriesForPublic();
+        return res.status(200).json(categories);
+    }
+
+    listAdmin = async (req: Request, res: Response) => {
+        const categories = await this.categoryService.getAllCategoriesForAdmin();
         return res.status(200).json(categories);
     }
 
     delete = async (req: Request, res: Response) => {
         const id = req.params.id as string;
         await this.categoryService.deleteCategory(id);
-        return res.status(200).json({ message: "Categoria removida (Soft Delete)" });
+        return res.status(200).json({ message: "Categoria removida permanentemente" });
     }
 
     update = async (req: Request, res: Response) => {
@@ -36,6 +42,7 @@ export class CategoryController {
             const id = req.params.id as string;
             const data = { ...req.body };
             if (data.ordem) data.ordem = Number(data.ordem);
+            if (data.ativo !== undefined) data.ativo = data.ativo === 'true';
 
             if (req.file) {
                 data.imagem_url = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;

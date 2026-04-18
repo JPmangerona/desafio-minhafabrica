@@ -28,7 +28,7 @@ export default function ProdutosPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [newProduct, setNewProduct] = useState({ nome: '', preco: 0, custo: 0, estoque: 0, destaque: false, categoria: '' });
+  const [newProduct, setNewProduct] = useState({ nome: '', preco: 0, custo: 0, estoque: 0, destaque: false, ativo: true, categoria: '' });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [sortByPrice, setSortByPrice] = useState(false);
@@ -39,7 +39,7 @@ export default function ProdutosPage() {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/product');
+      const response = await api.get('/admin/product');
       setProducts(response.data);
     } catch (err: any) {
       setError('Erro ao carregar catálogo de produtos.');
@@ -91,6 +91,7 @@ export default function ProdutosPage() {
       formData.append('custo', String(newProduct.custo));
       formData.append('estoque', String(newProduct.estoque));
       formData.append('destaque', String(newProduct.destaque));
+      formData.append('ativo', String(newProduct.ativo));
       if (newProduct.categoria) formData.append('categoria', newProduct.categoria);
       if (imageFile) formData.append('imagem', imageFile);
 
@@ -107,7 +108,7 @@ export default function ProdutosPage() {
       await fetchProducts();
       setShowModal(false);
       setEditingId(null);
-      setNewProduct({ nome: '', preco: 0, custo: 0, estoque: 0, destaque: false, categoria: '' });
+      setNewProduct({ nome: '', preco: 0, custo: 0, estoque: 0, destaque: false, ativo: true, categoria: '' });
       setImageFile(null);
       setImagePreview(null);
     } catch (err: any) {
@@ -123,6 +124,7 @@ export default function ProdutosPage() {
       custo: product.custo || 0,
       estoque: product.estoque,
       destaque: product.destaque || false,
+      ativo: product.ativo !== undefined ? product.ativo : true,
       categoria: typeof product.categoria === 'object' ? product.categoria._id : (product.categoria || ''),
     });
     setImagePreview(product.imagem_url || null);
@@ -163,7 +165,7 @@ export default function ProdutosPage() {
           <button
             onClick={() => {
               setEditingId(null);
-              setNewProduct({ nome: '', preco: 0, custo: 0, estoque: 0, destaque: false, categoria: '' });
+              setNewProduct({ nome: '', preco: 0, custo: 0, estoque: 0, destaque: false, ativo: true, categoria: '' });
               setImagePreview(null);
               setImageFile(null);
               setShowModal(true);
@@ -268,6 +270,9 @@ export default function ProdutosPage() {
                     <th className="px-8 py-6 text-[10px] uppercase tracking-widest font-bold text-slate-500">
                       Estoque
                     </th>
+                    <th className="px-8 py-6 text-[10px] uppercase tracking-widest font-bold text-slate-500">
+                      Status
+                    </th>
                     <th className="px-8 py-6 text-[10px] uppercase tracking-widest font-bold text-slate-500 text-right">
                       Ações
                     </th>
@@ -276,7 +281,7 @@ export default function ProdutosPage() {
                 <tbody>
                   {paginated.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-8 py-12 text-center text-slate-400">
+                      <td colSpan={6} className="px-8 py-12 text-center text-slate-400">
                         Nenhum produto encontrado.
                       </td>
                     </tr>
@@ -330,6 +335,21 @@ export default function ProdutosPage() {
                                 Baixo Estoque
                               </span>
                             )}
+                          </div>
+                        </td>
+                        <td className="px-8 py-5">
+                          <div className="flex items-center gap-2">
+                             {product.ativo ? (
+                               <>
+                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                 <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600">Ativo</span>
+                               </>
+                             ) : (
+                               <>
+                                 <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Inativo</span>
+                               </>
+                             )}
                           </div>
                         </td>
                         <td className="px-8 py-5 text-right">
@@ -505,6 +525,23 @@ export default function ProdutosPage() {
                     onChange={(e) => setNewProduct({ ...newProduct, destaque: e.target.checked })}
                   />
                   <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#1A237E]"></div>
+                </label>
+              </div>
+
+              {/* Status Toggle */}
+              <div className="flex items-center justify-between bg-surface-container-low p-4 rounded-2xl">
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800">Status do Produto</h4>
+                  <p className="text-xs text-slate-500">Define se o produto está público no catálogo</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={newProduct.ativo}
+                    onChange={(e) => setNewProduct({ ...newProduct, ativo: e.target.checked })}
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                 </label>
               </div>
 
