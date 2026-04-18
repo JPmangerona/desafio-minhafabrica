@@ -11,14 +11,14 @@ import {
   Trash2,
   Copy,
   Package,
-  Tag,
+  BookMarked,
   AlertTriangle,
   DollarSign,
   Loader2,
   AlertCircle
 } from 'lucide-react';
 import api from '@/services/api';
-import { Product } from '@/types';
+import { Product, Category } from '@/types';
 
 export default function ProdutosPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -27,9 +27,11 @@ export default function ProdutosPage() {
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [newProduct, setNewProduct] = useState({ nome: '', preco: 0, custo: 0, estoque: 0, destaque: false });
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [newProduct, setNewProduct] = useState({ nome: '', preco: 0, custo: 0, estoque: 0, destaque: false, categoria: '' });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [sortByPrice, setSortByPrice] = useState(false);
   const [page, setPage] = useState(1);
 
   const fetchProducts = async () => {
@@ -44,15 +46,39 @@ export default function ProdutosPage() {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const response = await api.get('/category');
+      setCategories(response.data);
+    } catch (err: any) {
+      console.error('Erro ao carregar categorias', err);
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, []);
 
-  const filtered = products.filter(
-    (p) =>
-      p.nome.toLowerCase().includes(search.toLowerCase()) ||
-      (p.sku && p.sku.toLowerCase().includes(search.toLowerCase()))
-  );
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
+
+  const itemsPerPage = 10;
+
+  const filtered = products
+    .filter(
+      (p) =>
+        p.nome.toLowerCase().includes(search.toLowerCase()) ||
+        (p.sku && p.sku.toLowerCase().includes(search.toLowerCase()))
+    )
+    .sort((a, b) => {
+      if (sortByPrice) return b.preco - a.preco;
+      return 0;
+    });
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
   const handleCreateOrUpdate = async () => {
     try {
@@ -62,8 +88,9 @@ export default function ProdutosPage() {
       formData.append('custo', String(newProduct.custo));
       formData.append('estoque', String(newProduct.estoque));
       formData.append('destaque', String(newProduct.destaque));
+      if (newProduct.categoria) formData.append('categoria', newProduct.categoria);
       if (imageFile) formData.append('imagem', imageFile);
-      
+
       if (editingId) {
         await api.put(`/product/${editingId}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
@@ -73,11 +100,11 @@ export default function ProdutosPage() {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
       }
-      
+
       await fetchProducts();
       setShowModal(false);
       setEditingId(null);
-      setNewProduct({ nome: '', preco: 0, custo: 0, estoque: 0, destaque: false });
+      setNewProduct({ nome: '', preco: 0, custo: 0, estoque: 0, destaque: false, categoria: '' });
       setImageFile(null);
       setImagePreview(null);
     } catch (err: any) {
@@ -93,6 +120,7 @@ export default function ProdutosPage() {
       custo: product.custo || 0,
       estoque: product.estoque,
       destaque: product.destaque || false,
+      categoria: typeof product.categoria === 'object' ? product.categoria._id : (product.categoria || ''),
     });
     setImagePreview(product.imagem_url || null);
     setImageFile(null);
@@ -131,7 +159,7 @@ export default function ProdutosPage() {
         <button
           onClick={() => {
             setEditingId(null);
-            setNewProduct({ nome: '', preco: 0, custo: 0, estoque: 0, destaque: false });
+            setNewProduct({ nome: '', preco: 0, custo: 0, estoque: 0, destaque: false, categoria: '' });
             setImagePreview(null);
             setImageFile(null);
             setShowModal(true);
@@ -148,10 +176,18 @@ export default function ProdutosPage() {
       {/* Stats strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
         {[
-          { label: 'Total de Produtos', value: '1.284', icon: Package, color: 'text-blue-600', bg: 'bg-blue-50' },
-          { label: 'Catálogos', value: '18', icon: Tag, color: 'text-[#1A237E]', bg: 'bg-indigo-50' },
-          { label: 'Estoque Baixo', value: '7', icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50' },
-          { label: 'Valor em Estoque', value: 'R$ 2,4M', icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { label: 'Total de Produtos', value: String(products.length), icon: Package, color: 'text-blue-600', bg: 'bg-blue-50' },
+          { label: 'Catálogos', value: String(categories.length), icon: BookMarked, color: 'text-[#1A237E]', bg: 'bg-indigo-50' },
+          { label: 'Estoque Baixo', value: String(products.filter(p => p.estoque <= 5).length), icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50' },
+          {
+            label: 'Valor em Estoque',
+            value: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+              products.reduce((acc, p) => acc + (p.custo || 0) * p.estoque, 0)
+            ),
+            icon: DollarSign,
+            color: 'text-emerald-600',
+            bg: 'bg-emerald-50'
+          },
         ].map((stat) => {
           const Icon = stat.icon;
           return (
@@ -184,15 +220,19 @@ export default function ProdutosPage() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors">
+              {/* <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors">
                 <Filter size={18} />
-              </button>
-              <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors">
+              </button> */}
+              <button
+                onClick={() => setSortByPrice(!sortByPrice)}
+                className={`p-2 rounded-lg transition-colors ${sortByPrice ? 'bg-[#1A237E] text-white' : 'text-slate-400 hover:bg-slate-100'}`}
+                title="Ordenar por maior preço"
+              >
                 <SortAsc size={18} />
               </button>
-              <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors">
+              {/* <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors">
                 <Download size={18} />
-              </button>
+              </button> */}
             </div>
           </div>
 
@@ -215,7 +255,7 @@ export default function ProdutosPage() {
                       Produto
                     </th>
                     <th className="px-8 py-6 text-[10px] uppercase tracking-widest font-bold text-slate-500">
-                      SKU
+                      Catálogo
                     </th>
                     <th className="px-8 py-6 text-[10px] uppercase tracking-widest font-bold text-slate-500">
                       Preço
@@ -228,22 +268,22 @@ export default function ProdutosPage() {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filtered.length === 0 ? (
+                <tbody>
+                  {paginated.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-8 py-12 text-center text-slate-400">
-                        Nenhum produto no catálogo.
+                        Nenhum produto encontrado.
                       </td>
                     </tr>
                   ) : (
-                    filtered.map((product) => (
+                    paginated.map((product) => (
                       <tr
                         key={product._id}
                         className="hover:bg-slate-50/50 transition-colors group"
                       >
                         <td className="px-8 py-5">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl overflow-hidden bg-slate-100 shrink-0 flex items-center justify-center text-slate-300">
+                            <div className={`w-12 h-12 rounded-2xl overflow-hidden bg-slate-100 shrink-0 flex items-center justify-center text-slate-300 transition-all ${product.destaque ? 'ring-2 ring-indigo-500/30 ring-offset-2 shadow-sm' : ''}`}>
                               {product.imagem_url ? (
                                 <img
                                   src={product.imagem_url}
@@ -260,9 +300,15 @@ export default function ProdutosPage() {
                           </div>
                         </td>
                         <td className="px-8 py-5">
-                          <span className="text-xs font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">
-                            {product.sku || 'N/A'}
-                          </span>
+                          {typeof product.categoria === 'object' ? (
+                            <span className="text-xs font-bold text-[#6366F1] bg-[#EEF2FF] px-3 py-1.5 rounded-full uppercase tracking-tighter border border-[#6366F1]/20">
+                              {product.categoria.nome}
+                            </span>
+                          ) : (
+                            <span className="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full uppercase tracking-tighter border border-amber-200">
+                              Sem Categoria
+                            </span>
+                          )}
                         </td>
                         <td className="px-8 py-5">
                           <span className="text-sm font-bold text-slate-900">
@@ -298,53 +344,47 @@ export default function ProdutosPage() {
               </table>
             )}
           </div>
-          <div className="mt-8 flex items-center justify-between px-4 flex-wrap gap-4">
-            <p className="text-sm text-slate-500">
-              Mostrando <span className="font-bold text-[#1A237E]">{filtered.length}</span> resultados de{' '}
-              <span className="font-bold text-[#1A237E]">{products.length}</span> produtos
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPage(Math.max(1, page - 1))}
-                className="px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-all"
-              >
-                Anterior
-              </button>
-              {[1, 2, 3].map((p) => (
+          {filtered.length > itemsPerPage && (
+            <div className="mt-8 flex items-center justify-between px-4 flex-wrap gap-4">
+              <p className="text-sm text-slate-500">
+                Mostrando <span className="font-bold text-[#1A237E]">{paginated.length}</span> resultados de{' '}
+                <span className="font-bold text-[#1A237E]">{filtered.length}</span> encontrados
+              </p>
+              <div className="flex gap-2">
                 <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  className={
-                    page === p
-                      ? 'px-4 py-2 text-sm font-bold bg-[#1A237E] text-white rounded-lg shadow-md'
-                      : 'px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-all'
-                  }
+                  disabled={page === 1}
+                  onClick={() => setPage(Math.max(1, page - 1))}
+                  className="px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-all disabled:opacity-30"
                 >
-                  {p}
+                  Anterior
                 </button>
-              ))}
-              <button
-                onClick={() => setPage(page + 1)}
-                className="px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-all"
-              >
-                Próxima
-              </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={
+                      page === p
+                        ? 'px-4 py-2 text-sm font-bold bg-[#1A237E] text-white rounded-lg shadow-md'
+                        : 'px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-all'
+                    }
+                  >
+                    {p}
+                  </button>
+                ))}
+                <button
+                  disabled={page === totalPages}
+                  onClick={() => setPage(Math.min(totalPages, page + 1))}
+                  className="px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-all disabled:opacity-30"
+                >
+                  Próxima
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="mt-16 flex flex-col md:flex-row justify-between items-center py-12 border-t border-slate-100">
-        <p className="text-xs text-on-surface-variant font-medium">
-          © 2024 MinhaFábrica. Todos os direitos reservados.
-        </p>
-        <div className="flex gap-8 mt-4 md:mt-0">
-          <a href="#" className="text-xs text-slate-500 hover:underline">Termos de Uso</a>
-          <a href="#" className="text-xs text-slate-500 hover:underline">Privacidade</a>
-          <a href="#" className="text-xs text-slate-500 hover:underline">Suporte</a>
-        </div>
-      </footer>
+
 
       {/* ── Add Product Modal ── */}
       {showModal && (
@@ -368,17 +408,36 @@ export default function ProdutosPage() {
             </div>
 
             <div className="p-8 space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
-                  Nome do Produto
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ex: Poltrona Barcelona"
-                  value={newProduct.nome}
-                  onChange={(e) => setNewProduct({ ...newProduct, nome: e.target.value })}
-                  className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-primary/30 transition-all"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
+                    Nome do Produto
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Poltrona Barcelona"
+                    value={newProduct.nome}
+                    onChange={(e) => setNewProduct({ ...newProduct, nome: e.target.value })}
+                    className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
+                    Categoria Mestre
+                  </label>
+                  <select
+                    value={newProduct.categoria}
+                    onChange={(e) => setNewProduct({ ...newProduct, categoria: e.target.value })}
+                    className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer text-slate-700"
+                  >
+                    <option value="">Nenhuma Categoria</option>
+                    {categories.map((cat) => (
+                      <option key={cat._id} value={cat._id}>
+                        {cat.nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {/* Grid: Preço + Custo + Estoque */}

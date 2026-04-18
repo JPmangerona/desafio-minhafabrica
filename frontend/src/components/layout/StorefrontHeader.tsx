@@ -1,21 +1,71 @@
+'use client';
+
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
 export function StorefrontHeader() {
+    const [activeSection, setActiveSection] = useState('colecoes');
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const sections = ['colecoes', 'catalogos', 'destaques'];
+            // Pegamos o scroll atual somado com um offset (ex: metade da tela) para acionar a troca
+            // quando a seção estiver chegando no meio da janela.
+            const scrollPosition = window.scrollY + window.innerHeight / 3;
+
+            for (let i = sections.length - 1; i >= 0; i--) {
+                const section = sections[i];
+                const element = document.getElementById(section);
+                if (element) {
+                    if (scrollPosition >= element.offsetTop) {
+                        setActiveSection(section);
+                        break; // Ao achar o primeiro de baixo pra cima que já passou, paramos.
+                    }
+                }
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        // Chama no carregamento inicial
+        handleScroll();
+
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const linkBaseClass = "uppercase tracking-wider text-sm transition-all duration-300 pb-1 border-b-2";
+    const getLinkClass = (section: string) => {
+        return activeSection === section 
+            ? `${linkBaseClass} text-[#1A237E] font-semibold border-[#1A237E]` 
+            : `${linkBaseClass} text-slate-500 hover:text-[#1A237E] font-medium border-transparent hover:border-[#1A237E]/30`;
+    };
+
     return (
         <nav className="bg-white/80 backdrop-blur-md text-slate-900 sticky top-0 z-50 border-b border-slate-100 transition-all duration-300">
             <div className="flex justify-between items-center w-full px-8 py-4 max-w-[1440px] mx-auto">
                 <div className="flex items-center gap-8">
                     <Link href="/" className="text-xl font-bold tracking-tighter text-[#1A237E]">
-                        MinhaFábrica
+                        <span className="text-[#fa6c1a]">Minha</span>Fábrica<span className="text-[#737373]">.com</span>
                     </Link>
                     <div className="hidden md:flex items-center gap-6">
-                        <a href="#colecoes" className="text-[#1A237E] font-semibold border-b-2 border-[#1A237E] pb-1 uppercase tracking-wider text-sm">
+                        <a 
+                            href="#colecoes" 
+                            className={getLinkClass('colecoes')}
+                            onClick={(e) => { e.preventDefault(); document.getElementById('colecoes')?.scrollIntoView({ behavior: 'smooth' }); }}
+                        >
                             Coleções
                         </a>
-                        <a href="#catalogos" className="text-slate-500 hover:text-[#1A237E] transition-colors uppercase tracking-wider text-sm">
+                        <a 
+                            href="#catalogos" 
+                            className={getLinkClass('catalogos')}
+                            onClick={(e) => { e.preventDefault(); document.getElementById('catalogos')?.scrollIntoView({ behavior: 'smooth' }); }}
+                        >
                             Catálogos
                         </a>
-                        <a href="#destaques" className="text-slate-500 hover:text-[#1A237E] transition-colors uppercase tracking-wider text-sm">
+                        <a 
+                            href="#destaques" 
+                            className={getLinkClass('destaques')}
+                            onClick={(e) => { e.preventDefault(); document.getElementById('destaques')?.scrollIntoView({ behavior: 'smooth' }); }}
+                        >
                             Destaques
                         </a>
                     </div>

@@ -115,10 +115,12 @@ export default async function StorefrontHome() {
   // Hero Section (Catálogo ordem 1)
   const heroCat = bdCategories.find((c) => c.ordem === 1 && c.ativo);
   const heroData = heroCat ? {
+    id: heroCat._id,
     title: heroCat.nome,
     description: heroCat.descricao || 'Descubra mobiliário escultural e objetos curados desenvolvidos para transformar seu espaço em uma galeria particular.',
     image: heroCat.imagem_url || 'https://picsum.photos/seed/luxury-living-room/1400/700'
   } : {
+    id: null,
     title: 'Coleção Overzide',
     description: 'Descubra mobiliário escultural e objetos curados desenvolvidos para transformar seu espaço em uma galeria particular.',
     image: 'https://picsum.photos/seed/luxury-living-room/1400/700'
@@ -130,12 +132,14 @@ export default async function StorefrontHome() {
     const cat = bdCategories.find((c) => c.ordem === order && c.ativo);
     if (cat) {
       return {
+        id: cat._id,
         name: cat.nome,
         count: cat.descricao || 'Ver coleção', // Usamos a descrição como um "texto extra"
         image: cat.imagem_url || fallbackCategories[index].imagem_url,
       };
     }
     return {
+      id: null,
       name: fallbackCategories[index].nome,
       count: fallbackCategories[index].count,
       image: fallbackCategories[index].imagem_url,
@@ -167,7 +171,6 @@ export default async function StorefrontHome() {
             alt={heroData.title}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
-          <div className="absolute inset-0 bg-primary/30 backdrop-brightness-75" />
           <div className="relative z-10 px-16 max-w-2xl">
             <span className="text-[11px] uppercase tracking-[0.2em] text-white mb-4 block font-medium">
               Destaque Principal
@@ -179,10 +182,19 @@ export default async function StorefrontHome() {
               {heroData.description}
             </p>
             <div className="flex gap-4">
-              <button className="bg-gradient-to-br from-primary to-primary-container text-white px-8 py-4 rounded-full font-semibold shadow-lg hover:opacity-90 transition-all flex items-center gap-2">
-                Explorar Coleção
-                <span className="material-symbols-outlined">arrow_forward</span>
-              </button>
+              {heroData.id ? (
+                <Link href={`/catalogos/${heroData.id}`}>
+                  <button className="bg-gradient-to-br from-primary to-primary-container text-white px-8 py-4 rounded-full font-semibold shadow-lg hover:opacity-90 transition-all flex items-center gap-2">
+                    Explorar Coleção
+                    <span className="material-symbols-outlined">arrow_forward</span>
+                  </button>
+                </Link>
+              ) : (
+                <button className="bg-gradient-to-br from-primary to-primary-container text-white px-8 py-4 rounded-full font-semibold shadow-lg hover:opacity-90 transition-all flex items-center gap-2">
+                  Explorar Coleção
+                  <span className="material-symbols-outlined">arrow_forward</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -193,72 +205,119 @@ export default async function StorefrontHome() {
         <div className="flex justify-between items-end mb-12">
           <div>
             <h2 className="text-3xl font-bold -tracking-tight text-primary mb-2">
-              Comprar por Categoria
+              Navegar por catálogos
             </h2>
             <p className="text-on-surface-variant font-light">
               Encontre o estilo que mais te agrada.
             </p>
           </div>
-          <a
-            href="#"
-            className="text-primary font-semibold border-b border-primary hover:pb-1 transition-all text-sm"
-          >
-            Ver Todas as Categorias
-          </a>
+
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Column 1 — tall */}
-          <div className="group relative aspect-square md:aspect-auto md:h-[500px] rounded-[3rem] overflow-hidden bg-surface-container-low cursor-pointer">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={displayCategories[0].image}
-              alt={displayCategories[0].name}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-            />
-            <div className="absolute inset-0 bg-black/5 group-hover:bg-black/20 transition-all" />
-            <div className="absolute bottom-10 left-10">
-              <h3 className="text-2xl font-bold text-white mb-1">{displayCategories[0].name}</h3>
-              <p className="text-white/80 text-sm uppercase tracking-widest">{displayCategories[0].count}</p>
+          {displayCategories[0].id ? (
+            <Link href={`/catalogos/${displayCategories[0].id}`} className="group relative aspect-square md:aspect-auto md:h-[500px] rounded-[3rem] overflow-hidden bg-surface-container-low cursor-pointer block">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={displayCategories[0].image}
+                alt={displayCategories[0].name}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-black/5 group-hover:bg-black/20 transition-all" />
+              <div className="absolute bottom-10 left-10">
+                <h3 className="text-2xl font-bold text-white mb-1">{displayCategories[0].name}</h3>
+                <p className="text-white/80 text-sm uppercase tracking-widest">{displayCategories[0].count}</p>
+              </div>
+            </Link>
+          ) : (
+            <div className="group relative aspect-square md:aspect-auto md:h-[500px] rounded-[3rem] overflow-hidden bg-surface-container-low cursor-pointer block">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={displayCategories[0].image}
+                alt={displayCategories[0].name}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-black/5 group-hover:bg-black/20 transition-all" />
+              <div className="absolute bottom-10 left-10">
+                <h3 className="text-2xl font-bold text-white mb-1">{displayCategories[0].name}</h3>
+                <p className="text-white/80 text-sm uppercase tracking-widest">{displayCategories[0].count}</p>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Column 2 — two halves */}
           <div className="flex flex-col gap-6">
-            {displayCategories.slice(1, 3).map((cat) => (
-              <div
-                key={cat.name}
-                className="group relative h-[238px] rounded-[3rem] overflow-hidden bg-surface-container-low cursor-pointer"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={cat.image}
-                  alt={cat.name}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-black/5 group-hover:bg-black/20 transition-all" />
-                <div className="absolute bottom-8 left-8">
-                  <h3 className="text-xl font-bold text-white mb-1">{cat.name}</h3>
-                  <p className="text-white/80 text-xs uppercase tracking-widest line-clamp-1">{cat.count}</p>
+            {displayCategories.slice(1, 3).map((cat) => {
+              const content = (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={cat.image}
+                    alt={cat.name}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-black/5 group-hover:bg-black/20 transition-all" />
+                  <div className="absolute bottom-8 left-8">
+                    <h3 className="text-xl font-bold text-white mb-1">{cat.name}</h3>
+                    <p className="text-white/80 text-xs uppercase tracking-widest line-clamp-1">{cat.count}</p>
+                  </div>
+                </>
+              );
+
+              if (cat.id) {
+                return (
+                  <Link
+                    key={cat.name}
+                    href={`/catalogos/${cat.id}`}
+                    className="group relative h-[238px] rounded-[3rem] overflow-hidden bg-surface-container-low cursor-pointer block"
+                  >
+                    {content}
+                  </Link>
+                );
+              }
+
+              return (
+                <div
+                  key={cat.name}
+                  className="group relative h-[238px] rounded-[3rem] overflow-hidden bg-surface-container-low cursor-pointer block"
+                >
+                  {content}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Column 3 — tall */}
-          <div className="group relative aspect-square md:aspect-auto md:h-[500px] rounded-[3rem] overflow-hidden bg-surface-container-low cursor-pointer">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={displayCategories[3].image}
-              alt={displayCategories[3].name}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-            />
-            <div className="absolute inset-0 bg-black/5 group-hover:bg-black/20 transition-all" />
-            <div className="absolute bottom-10 left-10">
-              <h3 className="text-2xl font-bold text-white mb-1">{displayCategories[3].name}</h3>
-              <p className="text-white/80 text-sm uppercase tracking-widest">{displayCategories[3].count}</p>
+          {displayCategories[3].id ? (
+            <Link href={`/catalogos/${displayCategories[3].id}`} className="group relative aspect-square md:aspect-auto md:h-[500px] rounded-[3rem] overflow-hidden bg-surface-container-low cursor-pointer block">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={displayCategories[3].image}
+                alt={displayCategories[3].name}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-black/5 group-hover:bg-black/20 transition-all" />
+              <div className="absolute bottom-10 left-10">
+                <h3 className="text-2xl font-bold text-white mb-1">{displayCategories[3].name}</h3>
+                <p className="text-white/80 text-sm uppercase tracking-widest">{displayCategories[3].count}</p>
+              </div>
+            </Link>
+          ) : (
+            <div className="group relative aspect-square md:aspect-auto md:h-[500px] rounded-[3rem] overflow-hidden bg-surface-container-low cursor-pointer block">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={displayCategories[3].image}
+                alt={displayCategories[3].name}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-black/5 group-hover:bg-black/20 transition-all" />
+              <div className="absolute bottom-10 left-10">
+                <h3 className="text-2xl font-bold text-white mb-1">{displayCategories[3].name}</h3>
+                <p className="text-white/80 text-sm uppercase tracking-widest">{displayCategories[3].count}</p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
@@ -304,9 +363,11 @@ export default async function StorefrontHome() {
         </div>
 
         <div className="mt-16 text-center">
-          <button className="border-2 border-primary text-primary px-10 py-3 rounded-full font-bold hover:bg-primary hover:text-white transition-all duration-300">
-            Descobrir Mais Peças
-          </button>
+          <Link href="/destaques">
+            <button className="border-2 border-primary text-primary px-10 py-3 rounded-full font-bold hover:bg-primary hover:text-white transition-all duration-300">
+              Descobrir Mais Peças
+            </button>
+          </Link>
         </div>
       </section>
 

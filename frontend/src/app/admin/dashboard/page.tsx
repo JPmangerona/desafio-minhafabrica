@@ -10,12 +10,13 @@ import {
   CheckCircle2,
   Clock,
   Loader2,
-  Tag
+  BookMarked,
+  DollarSign
 } from 'lucide-react';
 import api from '@/services/api';
 
 export default function DashboardPage() {
-  const [counts, setCounts] = useState({ users: 0, products: 0, categories: 0 });
+  const [counts, setCounts] = useState({ users: 0, products: 0, categories: 0, inventoryValue: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,7 +31,8 @@ export default function DashboardPage() {
         setCounts({
           users: uRes.data.length,
           products: pRes.data.length,
-          categories: cRes.data.length
+          categories: cRes.data.length,
+          inventoryValue: pRes.data.reduce((acc: number, p: any) => acc + (p.custo || 0) * p.estoque, 0)
         });
       } catch (err) {
         console.error('Erro ao buscar estatísticas do dashboard');
@@ -43,9 +45,15 @@ export default function DashboardPage() {
 
   const stats = [
     { label: 'Total de Produtos', value: counts.products.toString(), icon: Package, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Catálogos', value: counts.categories.toString(), icon: BookMarked, color: 'text-[#1A237E]', bg: 'bg-indigo-50' },
     { label: 'Usuários Ativos', value: counts.users.toString(), icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-    { label: 'Categorias', value: counts.categories.toString(), icon: Tag, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Valor em estoque', value: 'R$ 0.00', icon: Layers, color: 'text-slate-400', bg: 'bg-slate-50' },
+    { 
+      label: 'Valor em estoque', 
+      value: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(counts.inventoryValue), 
+      icon: DollarSign, 
+      color: 'text-emerald-600', 
+      bg: 'bg-emerald-50' 
+    },
   ];
 
   const recentActivity = [
@@ -59,6 +67,11 @@ export default function DashboardPage() {
     <div className="space-y-10">
       {/* Header */}
       <div>
+        <nav className="flex gap-2 mb-4">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#1A237E]">
+            Métricas da Plataforma
+          </span>
+        </nav>
         <h2 className="text-4xl font-black text-slate-900 -tracking-tight">Dashboard</h2>
         <p className="text-slate-500 mt-2">Visão geral da sua fábrica e catálogo em tempo real.</p>
       </div>

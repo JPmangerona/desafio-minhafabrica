@@ -31,6 +31,7 @@ export default function CatalogosPage() {
   const [newCategory, setNewCategory] = useState({ nome: '', descricao: '', ordem: 0 });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [sortByOrder, setSortByOrder] = useState(false);
   const [page, setPage] = useState(1);
 
   const fetchCategories = async () => {
@@ -49,9 +50,23 @@ export default function CatalogosPage() {
     fetchCategories();
   }, []);
 
-  const filtered = categories.filter((c) =>
-    c.nome.toLowerCase().includes(search.toLowerCase())
-  );
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
+
+  const itemsPerPage = 10;
+
+  const filtered = categories
+    .filter((c) =>
+      c.nome.toLowerCase().includes(search.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortByOrder) return b.ordem - a.ordem;
+      return 0; // Mantém ordem original do banco
+    });
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
   const activeCount = categories.filter((c) => c.ativo).length;
   const inactiveCount = categories.filter((c) => !c.ativo).length;
@@ -63,7 +78,7 @@ export default function CatalogosPage() {
       formData.append('descricao', newCategory.descricao);
       formData.append('ordem', String(newCategory.ordem));
       if (imageFile) formData.append('imagem', imageFile);
-      
+
       if (editingId) {
         await api.put(`/category/${editingId}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
@@ -146,8 +161,8 @@ export default function CatalogosPage() {
       {/* Stats strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
         {[
-          { label: 'Total de Catálogos', value: String(categories.length), icon: BookMarked, color: 'text-[#1A237E]', bg: 'bg-indigo-50' },
           { label: 'Ativos', value: String(activeCount), icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { label: 'Total de Catálogos', value: String(categories.length), icon: BookMarked, color: 'text-[#1A237E]', bg: 'bg-indigo-50' },
           { label: 'Inativos', value: String(inactiveCount), icon: XCircle, color: 'text-red-500', bg: 'bg-red-50' },
           { label: 'Ordem Máxima', value: categories.length > 0 ? String(Math.max(...categories.map(c => c.ordem))) : '0', icon: Hash, color: 'text-blue-600', bg: 'bg-blue-50' },
         ].map((stat) => {
@@ -182,15 +197,19 @@ export default function CatalogosPage() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors">
+              {/* <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors">
                 <Filter size={18} />
-              </button>
-              <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors">
+              </button> */}
+              <button
+                onClick={() => setSortByOrder(!sortByOrder)}
+                className={`p-2 rounded-lg transition-colors ${sortByOrder ? 'bg-[#1A237E] text-white' : 'text-slate-400 hover:bg-slate-100'}`}
+                title="Ordenar por maior ordem"
+              >
                 <SortAsc size={18} />
               </button>
-              <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors">
+              {/* <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors">
                 <Download size={18} />
-              </button>
+              </button> */}
             </div>
           </div>
 
@@ -227,7 +246,7 @@ export default function CatalogosPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filtered.length === 0 ? (
+                  {paginated.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-8 py-20 text-center">
                         <div className="flex flex-col items-center gap-3 text-slate-400">
@@ -243,7 +262,7 @@ export default function CatalogosPage() {
                       </td>
                     </tr>
                   ) : (
-                    filtered.map((cat) => (
+                    paginated.map((cat) => (
                       <tr
                         key={cat._id}
                         className="hover:bg-slate-50/50 transition-colors group"
@@ -303,53 +322,47 @@ export default function CatalogosPage() {
             )}
           </div>
 
-          <div className="mt-8 flex items-center justify-between px-4 flex-wrap gap-4">
-            <p className="text-sm text-slate-500">
-              Mostrando <span className="font-bold text-[#1A237E]">{filtered.length}</span> resultados de{' '}
-              <span className="font-bold text-[#1A237E]">{categories.length}</span> catálogos
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPage(Math.max(1, page - 1))}
-                className="px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-all"
-              >
-                Anterior
-              </button>
-              {[1, 2, 3].map((p) => (
+          {filtered.length > itemsPerPage && (
+            <div className="mt-8 flex items-center justify-between px-4 flex-wrap gap-4">
+              <p className="text-sm text-slate-500">
+                Mostrando <span className="font-bold text-[#1A237E]">{paginated.length}</span> resultados de{' '}
+                <span className="font-bold text-[#1A237E]">{filtered.length}</span> encontrados
+              </p>
+              <div className="flex gap-2">
                 <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  className={
-                    page === p
-                      ? 'px-4 py-2 text-sm font-bold bg-[#1A237E] text-white rounded-lg shadow-md'
-                      : 'px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-all'
-                  }
+                  disabled={page === 1}
+                  onClick={() => setPage(Math.max(1, page - 1))}
+                  className="px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-all disabled:opacity-30"
                 >
-                  {p}
+                  Anterior
                 </button>
-              ))}
-              <button
-                onClick={() => setPage(page + 1)}
-                className="px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-all"
-              >
-                Próxima
-              </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={
+                      page === p
+                        ? 'px-4 py-2 text-sm font-bold bg-[#1A237E] text-white rounded-lg shadow-md'
+                        : 'px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-all'
+                    }
+                  >
+                    {p}
+                  </button>
+                ))}
+                <button
+                  disabled={page === totalPages}
+                  onClick={() => setPage(Math.min(totalPages, page + 1))}
+                  className="px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-all disabled:opacity-30"
+                >
+                  Próxima
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="mt-16 flex flex-col md:flex-row justify-between items-center py-12 border-t border-slate-100">
-        <p className="text-xs text-slate-400 font-medium">
-          © 2024 MinhaFábrica. Todos os direitos reservados.
-        </p>
-        <div className="flex gap-8 mt-4 md:mt-0">
-          <a href="#" className="text-xs text-slate-500 hover:underline">Termos de Uso</a>
-          <a href="#" className="text-xs text-slate-500 hover:underline">Privacidade</a>
-          <a href="#" className="text-xs text-slate-500 hover:underline">Suporte</a>
-        </div>
-      </footer>
+
 
       {/* ── Add Category Modal ── */}
       {showModal && (

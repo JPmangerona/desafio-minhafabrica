@@ -274,17 +274,7 @@ export default function UsuariosPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="mt-16 flex flex-col md:flex-row justify-between items-center py-12 border-t border-slate-100">
-        <p className="text-xs text-on-surface-variant font-medium">
-          © 2024 MinhaFábrica. Todos os direitos reservados.
-        </p>
-        <div className="flex gap-8 mt-4 md:mt-0">
-          <a href="#" className="text-xs text-slate-500 hover:underline">Termos de Uso</a>
-          <a href="#" className="text-xs text-slate-500 hover:underline">Privacidade</a>
-          <a href="#" className="text-xs text-slate-500 hover:underline">Suporte</a>
-        </div>
-      </footer>
+
 
       {/* ── Add User Modal ── */}
       {showModal && (

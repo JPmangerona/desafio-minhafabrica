@@ -74,13 +74,7 @@ export function AdminSidebar() {
 
       {/* Bottom actions */}
       <div className="mt-auto px-4 space-y-4">
-        <Link
-          href="/admin/produtos"
-          className="w-full bg-[#1A237E] text-white py-3 px-4 rounded-xl font-semibold flex items-center justify-center gap-2 shadow-lg hover:bg-[#121858] transition-all active:scale-95"
-        >
-          <Plus size={18} />
-          Novo Produto
-        </Link>
+
 
         <div className="pt-4 border-t border-slate-200">
           {/* Admin profile */}
