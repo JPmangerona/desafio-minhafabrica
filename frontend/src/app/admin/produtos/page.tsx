@@ -34,6 +34,8 @@ export default function ProdutosPage() {
   const [sortByPrice, setSortByPrice] = useState(false);
   const [page, setPage] = useState(1);
 
+  const [role, setRole] = useState<string | null>(null);
+
   const fetchProducts = async () => {
     try {
       setLoading(true);
@@ -56,6 +58,7 @@ export default function ProdutosPage() {
   };
 
   useEffect(() => {
+    setRole(localStorage.getItem('user_role'));
     fetchProducts();
     fetchCategories();
   }, []);
@@ -156,21 +159,23 @@ export default function ProdutosPage() {
             preços em um único lugar.
           </p>
         </div>
-        <button
-          onClick={() => {
-            setEditingId(null);
-            setNewProduct({ nome: '', preco: 0, custo: 0, estoque: 0, destaque: false, categoria: '' });
-            setImagePreview(null);
-            setImageFile(null);
-            setShowModal(true);
-          }}
-          className="group flex items-center gap-3 bg-[#1A237E] text-white pl-6 pr-5 py-4 rounded-2xl font-bold shadow-lg shadow-indigo-900/20 hover:scale-[1.02] transition-all shrink-0"
-        >
-          Novo Produto
-          <div className="bg-white/20 p-2 rounded-xl">
-            <Plus size={20} />
-          </div>
-        </button>
+        {role !== 'visualizador' && (
+          <button
+            onClick={() => {
+              setEditingId(null);
+              setNewProduct({ nome: '', preco: 0, custo: 0, estoque: 0, destaque: false, categoria: '' });
+              setImagePreview(null);
+              setImageFile(null);
+              setShowModal(true);
+            }}
+            className="group flex items-center gap-3 bg-[#1A237E] text-white pl-6 pr-5 py-4 rounded-2xl font-bold shadow-lg shadow-indigo-900/20 hover:scale-[1.02] transition-all shrink-0"
+          >
+            Novo Produto
+            <div className="bg-white/20 p-2 rounded-xl">
+              <Plus size={20} />
+            </div>
+          </button>
+        )}
       </header>
 
       {/* Stats strip */}
@@ -329,12 +334,18 @@ export default function ProdutosPage() {
                         </td>
                         <td className="px-8 py-5 text-right">
                           <div className="flex items-center justify-end gap-2 text-slate-400">
-                            <button onClick={() => handleEditClick(product)} className="p-2 hover:bg-slate-100 hover:text-[#1A237E] rounded-xl transition-all" title="Editar">
-                              <Edit3 size={18} />
-                            </button>
-                            <button onClick={() => handleDelete(product._id)} className="p-2 hover:bg-red-50 hover:text-red-500 rounded-xl transition-all" title="Excluir">
-                              <Trash2 size={18} />
-                            </button>
+                            {role !== 'visualizador' ? (
+                              <>
+                                <button onClick={() => handleEditClick(product)} className="p-2 hover:bg-slate-100 hover:text-[#1A237E] rounded-xl transition-all" title="Editar">
+                                  <Edit3 size={18} />
+                                </button>
+                                <button onClick={() => handleDelete(product._id)} className="p-2 hover:bg-red-50 hover:text-red-500 rounded-xl transition-all" title="Excluir">
+                                  <Trash2 size={18} />
+                                </button>
+                              </>
+                            ) : (
+                              <span className="text-[10px] uppercase font-bold text-slate-300">Somente Leitura</span>
+                            )}
                           </div>
                         </td>
                       </tr>

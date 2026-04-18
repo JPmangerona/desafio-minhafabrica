@@ -18,6 +18,18 @@ export const getToken = (request: Request): string | null => {
     return token;
 }
 
+declare global {
+    namespace Express {
+        interface Request {
+            user?: {
+                name: string;
+                email: string;
+                role: string;
+            };
+        }
+    }
+}
+
 export const authenticated = (request: Request, response: Response, next: NextFunction) => {
     const token = getToken(request);
     const secret = process.env.JWT_SECRET;
@@ -27,7 +39,8 @@ export const authenticated = (request: Request, response: Response, next: NextFu
     }
 
     try {
-        jwt.verify(token, secret);
+        const decoded = jwt.verify(token, secret) as any;
+        request.user = decoded;
         next();
     } catch (error) {
         return response.status(401).json({ message: 'Não autorizado: Token inválido ou expirado' });

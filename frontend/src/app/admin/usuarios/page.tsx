@@ -1,18 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  UserPlus, 
-  Search, 
-  Filter, 
-  SortAsc, 
-  Edit3, 
-  Trash2, 
+import {
+  UserPlus,
+  Search,
+  Filter,
+  SortAsc,
+  Edit3,
+  Trash2,
   X,
   User as UserIcon,
-  ShieldCheck,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+  ShieldCheck,
+  Users
 } from 'lucide-react';
 import api from '@/services/api';
 import { User } from '@/types';
@@ -21,8 +24,8 @@ import { User } from '@/types';
 const roleConfig: Record<string, { label: string, color: string }> = {
   admin: { label: 'Administrador', color: 'bg-indigo-100 text-indigo-700' },
   editor: { label: 'Editor', color: 'bg-blue-100 text-blue-700' },
-  viewer: { label: 'Visualizador', color: 'bg-amber-100 text-amber-700' },
-  client: { label: 'Cliente', color: 'bg-slate-100 text-slate-700' },
+  visualizador: { label: 'Visualizador', color: 'bg-amber-100 text-amber-700' },
+  cliente: { label: 'Cliente', color: 'bg-slate-100 text-slate-700' },
 };
 
 const roles = Object.keys(roleConfig);
@@ -33,7 +36,9 @@ export default function UsuariosPage() {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [newUser, setNewUser] = useState({ name: '', email: '', password: '123', role: 'viewer' });
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'visualizador' });
   const [page, setPage] = useState(1);
 
   const fetchUsers = async () => {
@@ -50,8 +55,18 @@ export default function UsuariosPage() {
   };
 
   useEffect(() => {
+    const role = localStorage.getItem('user_role');
+    if (role !== 'admin') {
+      router.push('/admin/dashboard');
+      return;
+    }
     fetchUsers();
   }, []);
+
+  const activeCount = users.filter(u => u.ativo).length;
+  const inactiveCount = users.filter(u => !u.ativo).length;
+  const totalCount = users.length;
+  const limitCount = 250; // Limite simulado da plataforma
 
   const filtered = users.filter(
     (u) =>
@@ -60,24 +75,58 @@ export default function UsuariosPage() {
   );
 
   const handleCreate = async () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newUser.email)) {
+      alert('Por favor, informe um e-mail válido (exemplo@dominio.com)');
+      return;
+    }
+
     try {
       await api.post('/user', newUser);
       await fetchUsers(); // Recarrega a lista
       setShowModal(false);
-      setNewUser({ name: '', email: '', password: '123', role: 'viewer' });
+      setNewUser({ name: '', email: '', password: '', role: 'visualizador' });
     } catch (err: any) {
       alert(err.response?.data?.message || 'Erro ao criar usuário');
     }
   };
 
-  const handleToggleStatus = async (user: User) => {
+  const handleDelete = async (user: User) => {
+    if (!window.confirm(`Tem certeza que deseja excluir permanentemente o usuário ${user.name}? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+
     try {
-      // O endpoint de deleteByName executa o soft delete
-      await api.delete(`/user/${user.name}`);
+      // O endpoint de deleteByName espera o nome no corpo da requisição (body)
+      await api.delete('/user', { data: { name: user.name } });
       await fetchUsers();
     } catch (err: any) {
-      alert('Erro ao alterar status do usuário');
+      alert(err.response?.data?.message || 'Erro ao excluir usuário');
     }
+  };
+
+  const handleUpdate = async () => {
+    if (!editingUser) return;
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(editingUser.email)) {
+      alert('Por favor, informe um e-mail válido (exemplo@dominio.com)');
+      return;
+    }
+
+    try {
+      await api.put(`/user/${editingUser._id}`, editingUser);
+      await fetchUsers();
+      setShowEditModal(false);
+      setEditingUser(null);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Erro ao atualizar usuário');
+    }
+  };
+
+  const openEditModal = (user: User) => {
+    setEditingUser({ ...user });
+    setShowEditModal(true);
   };
 
   return (
@@ -107,6 +156,29 @@ export default function UsuariosPage() {
           </div>
         </button>
       </header>
+
+      {/* Stats strip */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+        {[
+          { label: 'Ativos', value: String(activeCount), icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { label: 'Total de Usuários', value: String(totalCount), icon: Users, color: 'text-[#1A237E]', bg: 'bg-indigo-50' },
+          { label: 'Inativos', value: String(inactiveCount), icon: XCircle, color: 'text-red-500', bg: 'bg-red-50' },
+          { label: 'Limite Máximo', value: String(limitCount), icon: ShieldCheck, color: 'text-blue-600', bg: 'bg-blue-50' },
+        ].map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <div key={stat.label} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+              <div className="flex items-center gap-3 mb-2">
+                <div className={`${stat.bg} ${stat.color} p-2 rounded-lg`}>
+                  <Icon size={18} />
+                </div>
+                <span className="text-xs text-slate-500 font-medium">{stat.label}</span>
+              </div>
+              <p className="text-2xl font-black text-slate-900">{stat.value}</p>
+            </div>
+          );
+        })}
+      </div>
 
       {/* Table Section */}
       <section className="grid grid-cols-1 gap-6">
@@ -176,7 +248,7 @@ export default function UsuariosPage() {
                       </tr>
                     ) : (
                       filtered.map((user) => {
-                        const role = roleConfig[user.role] || roleConfig.viewer;
+                        const role = roleConfig[user.role] || roleConfig.visualizador;
                         return (
                           <tr
                             key={user._id}
@@ -213,17 +285,18 @@ export default function UsuariosPage() {
                             <td className="px-8 py-5 text-right">
                               <div className="flex items-center justify-end gap-2">
                                 <button
+                                  onClick={() => openEditModal(user)}
                                   className="p-2 hover:bg-slate-100 text-slate-400 hover:text-indigo-600 rounded-xl transition-all"
                                   title="Editar"
                                 >
                                   <Edit3 size={18} />
                                 </button>
                                 <button
-                                  onClick={() => handleToggleStatus(user)}
-                                  className={`p-2 rounded-xl transition-all ${user.ativo ? 'hover:bg-red-50 text-slate-400 hover:text-red-500' : 'hover:bg-emerald-50 text-emerald-500'}`}
-                                  title={user.ativo ? 'Inativar' : 'Reativar'}
+                                  onClick={() => handleDelete(user)}
+                                  className="p-2 rounded-xl transition-all hover:bg-red-50 text-slate-400 hover:text-red-500"
+                                  title="Excluir Permanentemente"
                                 >
-                                  {user.ativo ? <Trash2 size={18} /> : <ShieldCheck size={18} />}
+                                  <Trash2 size={18} />
                                 </button>
                               </div>
                             </td>
@@ -238,39 +311,41 @@ export default function UsuariosPage() {
           </div>
 
           {/* Pagination */}
-          <div className="mt-8 flex items-center justify-between px-4 flex-wrap gap-4">
-            <p className="text-sm text-on-surface-variant">
-              Mostrando <span className="font-bold text-primary">{filtered.length}</span> de{' '}
-              <span className="font-bold text-primary">248</span> usuários
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPage(Math.max(1, page - 1))}
-                className="px-4 py-2 text-sm font-bold text-primary hover:bg-white rounded-lg transition-all border border-outline-variant/30"
-              >
-                Anterior
-              </button>
-              {[1, 2, 3].map((p) => (
+          {filtered.length > 10 && (
+            <div className="mt-8 flex items-center justify-between px-4 flex-wrap gap-4">
+              <p className="text-sm text-on-surface-variant">
+                Mostrando <span className="font-bold text-primary">{Math.min(10, filtered.length)}</span> de{' '}
+                <span className="font-bold text-primary">{filtered.length}</span> usuários
+              </p>
+              <div className="flex gap-2">
                 <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  className={
-                    page === p
-                      ? 'px-4 py-2 text-sm font-bold bg-primary text-white rounded-lg shadow-md'
-                      : 'px-4 py-2 text-sm font-bold text-primary hover:bg-white rounded-lg transition-all border border-outline-variant/30'
-                  }
+                  onClick={() => setPage(Math.max(1, page - 1))}
+                  className="px-4 py-2 text-sm font-bold text-primary hover:bg-white rounded-lg transition-all border border-outline-variant/30"
                 >
-                  {p}
+                  Anterior
                 </button>
-              ))}
-              <button
-                onClick={() => setPage(page + 1)}
-                className="px-4 py-2 text-sm font-bold text-primary hover:bg-white rounded-lg transition-all border border-outline-variant/30"
-              >
-                Próxima
-              </button>
+                {[1, 2, 3].map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={
+                      page === p
+                        ? 'px-4 py-2 text-sm font-bold bg-primary text-white rounded-lg shadow-md'
+                        : 'px-4 py-2 text-sm font-bold text-primary hover:bg-white rounded-lg transition-all border border-outline-variant/30'
+                    }
+                  >
+                    {p}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setPage(page + 1)}
+                  className="px-4 py-2 text-sm font-bold text-primary hover:bg-white rounded-lg transition-all border border-outline-variant/30"
+                >
+                  Próxima
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
@@ -324,6 +399,21 @@ export default function UsuariosPage() {
                 />
               </div>
 
+
+
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
+                  Senha de Acesso
+                </label>
+                <input
+                  type="password"
+                  placeholder="Defina uma senha"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                  className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-secondary/30 transition-all"
+                />
+              </div>
+
               <div className="space-y-2">
                 <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
                   Função de Acesso
@@ -333,7 +423,7 @@ export default function UsuariosPage() {
                   onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
                   className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-secondary/30 transition-all"
                 >
-                  {roles.map((r) => (
+                  {roles.filter(r => r !== 'admin').map((r) => (
                     <option key={r}>{r}</option>
                   ))}
                 </select>
@@ -351,6 +441,105 @@ export default function UsuariosPage() {
                   className="flex-[2] py-4 bg-secondary text-white font-bold rounded-2xl shadow-lg hover:scale-[1.02] active:scale-95 transition-all"
                 >
                   Criar Conta
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Edit User Modal ── */}
+      {showEditModal && editingUser && (
+        <div className="fixed inset-0 bg-primary/20 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden">
+            <div className="bg-secondary p-8 text-white">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-3xl font-black -tracking-tight">Editar Usuário</h3>
+                  <p className="text-white/80 text-sm mt-1">
+                    Altere os dados ou o status de {editingUser.name}.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="p-8 space-y-6">
+              <div className="flex items-center justify-between bg-surface-container-low p-4 rounded-2xl">
+                <div>
+                  <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block mb-1">
+                    Status da Conta
+                  </label>
+                  <p className="text-sm font-semibold text-slate-700">
+                    {editingUser.ativo ? 'Usuário Ativo' : 'Conta Inativa'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setEditingUser({ ...editingUser, ativo: !editingUser.ativo })}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${editingUser.ativo ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${editingUser.ativo ? 'translate-x-6' : 'translate-x-1'}`}
+                  />
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
+                  Nome Completo
+                </label>
+                <input
+                  type="text"
+                  value={editingUser.name}
+                  onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
+                  className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-secondary/30 transition-all"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
+                  E-mail
+                </label>
+                <input
+                  type="email"
+                  value={editingUser.email}
+                  disabled
+                  className="w-full bg-surface-container-low/50 text-slate-400 border-none rounded-2xl py-3 px-4 outline-none cursor-not-allowed"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
+                  Função de Acesso
+                </label>
+                <select
+                  value={editingUser.role}
+                  onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
+                  className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-secondary/30 transition-all"
+                >
+                  {roles.filter(r => r !== 'admin').map((r) => (
+                    <option key={r} value={r}>{roleConfig[r]?.label || r}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="pt-4 flex gap-4">
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="flex-1 py-4 text-primary font-bold hover:bg-surface-container-high rounded-2xl transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleUpdate}
+                  className="flex-[2] py-4 bg-secondary text-white font-bold rounded-2xl shadow-lg hover:scale-[1.02] active:scale-95 transition-all"
+                >
+                  Salvar Alterações
                 </button>
               </div>
             </div>

@@ -7,6 +7,7 @@ import {
   TrendingUp,
   Layers,
   AlertCircle,
+  AlertTriangle,
   CheckCircle2,
   Clock,
   Loader2,
@@ -23,19 +24,43 @@ export default function DashboardPage() {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        const [uRes, pRes, cRes] = await Promise.all([
-          api.get('/user'),
-          api.get('/product'),
-          api.get('/category')
+        
+        // Buscamos dados individualmente para não quebrar tudo se um falhar (ex: falta de permissão)
+        const fetchUserData = async () => {
+          try {
+            const res = await api.get('/user');
+            return res.data.length;
+          } catch { return 0; }
+        };
+
+        const fetchProductData = async () => {
+          try {
+            const res = await api.get('/product');
+            return res.data;
+          } catch { return []; }
+        };
+
+        const fetchCategoryData = async () => {
+          try {
+            const res = await api.get('/category');
+            return res.data.length;
+          } catch { return 0; }
+        };
+
+        const [userCount, products, categoryCount] = await Promise.all([
+          fetchUserData(),
+          fetchProductData(),
+          fetchCategoryData()
         ]);
+
         setCounts({
-          users: uRes.data.length,
-          products: pRes.data.length,
-          categories: cRes.data.length,
-          inventoryValue: pRes.data.reduce((acc: number, p: any) => acc + (p.custo || 0) * p.estoque, 0)
+          users: userCount,
+          products: products.length,
+          categories: categoryCount,
+          inventoryValue: products.reduce((acc: number, p: any) => acc + (p.custo || 0) * p.estoque, 0)
         });
       } catch (err) {
-        console.error('Erro ao buscar estatísticas do dashboard');
+        console.error('Erro geral ao processar estatísticas do dashboard');
       } finally {
         setLoading(false);
       }
@@ -47,20 +72,20 @@ export default function DashboardPage() {
     { label: 'Total de Produtos', value: counts.products.toString(), icon: Package, color: 'text-blue-600', bg: 'bg-blue-50' },
     { label: 'Catálogos', value: counts.categories.toString(), icon: BookMarked, color: 'text-[#1A237E]', bg: 'bg-indigo-50' },
     { label: 'Usuários Ativos', value: counts.users.toString(), icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-    { 
-      label: 'Valor em estoque', 
-      value: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(counts.inventoryValue), 
-      icon: DollarSign, 
-      color: 'text-emerald-600', 
-      bg: 'bg-emerald-50' 
+    {
+      label: 'Valor em estoque',
+      value: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(counts.inventoryValue),
+      icon: DollarSign,
+      color: 'text-emerald-600',
+      bg: 'bg-emerald-50'
     },
   ];
 
   const recentActivity = [
-    { id: 1, action: 'Novo produto cadastrado', item: 'Prensa Hidráulica X-200', user: 'Bruno Martins', time: '2 min atrás', icon: Package, iconBg: 'bg-blue-100', iconColor: 'text-blue-600' },
-    { id: 2, action: 'Novo usuário registrado', item: 'Lojas Americanas - Filial 02', user: 'Sistema', time: '15 min atrás', icon: Users, iconBg: 'bg-indigo-100', iconColor: 'text-indigo-600' },
-    { id: 3, action: 'Estoque baixo atingido', item: 'Eixo Rotativo 15mm', user: 'Alerta de Bot', time: '1 h atrás', icon: AlertCircle, iconBg: 'bg-red-100', iconColor: 'text-red-600' },
-    { id: 4, action: 'Categoria atualizada', item: 'Ferragens de Precisão', user: 'Ana Carolina', time: '3 h atrás', icon: CheckCircle2, iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600' },
+    { id: 1, action: 'Contratar João Pedro', item: 'Vai que...', user: 'Caio Basdão', icon: AlertTriangle, iconBg: 'bg-amber-100', iconColor: 'text-amber-600', completed: false },
+    { id: 2, action: 'Painel Admin', item: 'Acessível apenas depois de logado', user: 'João Pedro', icon: CheckCircle2, iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', completed: true },
+    { id: 3, action: 'CRUD de usuários', item: 'Implementado', user: 'João Pedro', icon: CheckCircle2, iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', completed: true },
+    { id: 4, action: 'CRUD de produtos', item: 'Implementado', user: 'João Pedro', icon: CheckCircle2, iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', completed: true },
   ];
 
   return (
@@ -87,7 +112,6 @@ export default function DashboardPage() {
                 <div className={`${stat.bg} ${stat.color} p-3 rounded-2xl`}>
                   <Icon size={24} />
                 </div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Real-time</span>
               </div>
               <p className="text-3xl font-black text-slate-900">{stat.value}</p>
               <p className="text-sm font-medium text-slate-500 mt-1">{stat.label}</p>
@@ -101,7 +125,6 @@ export default function DashboardPage() {
         <div className="lg:col-span-2 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8">
           <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
             Atividade Recente
-            <span className="bg-slate-100 text-slate-500 text-[10px] px-2 py-1 rounded-full uppercase tracking-widest">Live</span>
           </h3>
           <div className="space-y-6">
             {recentActivity.map((item) => {
@@ -118,7 +141,11 @@ export default function DashboardPage() {
                     </div>
                     <p className="text-sm text-slate-600 mt-1">{item.item}</p>
                     <div className="flex items-center gap-2 mt-2">
-                      <div className="w-4 h-4 rounded-full bg-slate-200"></div>
+                      {item.completed ? (
+                        <CheckCircle2 size={16} className="text-emerald-500" />
+                      ) : (
+                        <div className="w-4 h-4 rounded-full bg-slate-200"></div>
+                      )}
                       <span className="text-[11px] font-medium text-slate-500">por {item.user}</span>
                     </div>
                   </div>
@@ -126,9 +153,6 @@ export default function DashboardPage() {
               );
             })}
           </div>
-          <button className="w-full py-4 mt-6 text-sm font-bold text-[#1A237E] hover:bg-slate-50 rounded-2xl border border-slate-100 transition-colors">
-            Ver todas as atividades
-          </button>
         </div>
 
         {/* System Health / Right Widget */}
@@ -141,27 +165,22 @@ export default function DashboardPage() {
                 <span className="bg-emerald-400/20 text-emerald-400 px-2 py-1 rounded-md text-[10px] font-bold">ONLINE</span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-white/70">MongoDB Atlas</span>
+                <span className="text-white/70">MongoDB</span>
                 <span className="bg-emerald-400/20 text-emerald-400 px-2 py-1 rounded-md text-[10px] font-bold">ONLINE</span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-white/70">CDN Assets</span>
+                <span className="text-white/70">Frontend</span>
                 <span className="bg-emerald-400/20 text-emerald-400 px-2 py-1 rounded-md text-[10px] font-bold">ONLINE</span>
               </div>
-            </div>
-            <div className="mt-8 pt-6 border-t border-white/10">
-              <p className="text-[10px] uppercase font-bold tracking-widest text-white/40">Uptime 30 dias</p>
-              <p className="text-2xl font-black mt-1">99.98%</p>
             </div>
           </div>
 
           <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8">
             <h3 className="text-lg font-bold text-slate-900 mb-4">Links Rápidos</h3>
             <div className="grid grid-cols-2 gap-3">
-              <button className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-600 transition-colors">Wiki Interna</button>
-              <button className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-600 transition-colors">Suporte</button>
-              <button className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-600 transition-colors">Logs</button>
-              <button className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-600 transition-colors">API Docs</button>
+              <button className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-600 transition-colors">Documentação</button>
+              <button className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-600 transition-colors">Linkedin</button>
+              <button className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-600 transition-colors">GitHub</button>
             </div>
           </div>
         </div>

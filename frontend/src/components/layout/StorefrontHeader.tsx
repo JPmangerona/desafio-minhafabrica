@@ -43,8 +43,8 @@ export function StorefrontHeader() {
         <nav className="bg-white/80 backdrop-blur-md text-slate-900 sticky top-0 z-50 border-b border-slate-100 transition-all duration-300">
             <div className="flex justify-between items-center w-full px-8 py-4 max-w-[1440px] mx-auto">
                 <div className="flex items-center gap-8">
-                    <Link href="/" className="text-xl font-bold tracking-tighter text-[#1A237E]">
-                        <span className="text-[#fa6c1a]">Minha</span>Fábrica<span className="text-[#737373]">.com</span>
+                    <Link href="/" className="text-xl font-bold tracking-tighter">
+                        <span className="text-[#fa6c1a]">Minha</span><span className="text-[#1A237E]">Fábrica</span><span className="text-[#737373]">.com</span>
                     </Link>
                     <div className="hidden md:flex items-center gap-6">
                         <a 

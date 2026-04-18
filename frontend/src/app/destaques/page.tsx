@@ -25,7 +25,7 @@ export default async function DestaquesPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <StorefrontHeader />
-      
+
       <main className="flex-1 px-8 py-16 max-w-[1440px] mx-auto w-full">
         <div className="mb-12">
           <Link href="/" className="text-sm font-bold text-slate-400 hover:text-primary transition-colors flex items-center gap-2 mb-6">
@@ -45,17 +45,16 @@ export default async function DestaquesPage() {
             {destaqueProducts.map((product) => (
               <div key={product.id} className="group flex flex-col cursor-pointer">
                 <div className="relative aspect-[3/4] bg-surface-container-lowest rounded-xl overflow-hidden mb-4 border border-slate-100 shadow-sm">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:scale-110 transition-transform">
-                    <span className="material-symbols-outlined text-primary text-xl">
-                      favorite_border
-                    </span>
-                  </div>
+                  {product.image ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-slate-100 transition-transform duration-500 group-hover:scale-105" />
+                  )}
                 </div>
                 <span className="text-[10px] uppercase tracking-wider text-on-surface-variant mb-1 font-medium">
                   {product.category}
@@ -78,13 +77,15 @@ export default async function DestaquesPage() {
       <footer className="bg-white border-t border-slate-100 py-12">
         <div className="flex flex-col md:flex-row justify-between items-center px-12 max-w-[1440px] mx-auto w-full">
           <div className="mb-8 md:mb-0">
-            <span className="font-bold text-slate-900 text-lg"><span className="text-[#fa6c1a]">Minha</span>Fábrica</span>
+            <span className="font-bold text-slate-900 text-lg">
+              <span className="text-[#fa6c1a]">Minha</span><span className="text-[#1A237E]">Fábrica</span><span className="text-[#737373]">.com</span>
+            </span>
             <p className="text-slate-500 text-sm mt-2 max-w-sm">
-              Conectando você aos melhores fabricantes de móveis e decorações artesanais.
+              Encontre seu melhor estilo.
             </p>
           </div>
           <p className="text-slate-400 text-sm">
-            © 2024 MinhaFábrica. Todos os direitos reservados.
+            © 2026 Opty. Todos os direitos reservados.
           </p>
         </div>
       </footer>

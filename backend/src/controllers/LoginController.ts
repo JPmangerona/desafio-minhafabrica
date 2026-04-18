@@ -9,11 +9,12 @@ export class LoginController {
         const userService = new UserService();
 
         const token = await userService.getToken(email, password);
+        const user = await userService.getAuthenticatedUser(email, password);
 
-        if (!token) {
+        if (!token || !user) {
             return response.status(401).json({ message: 'Email ou senha inválidos' });
         }
 
-        return response.status(200).json({ token });
+        return response.status(200).json({ token, role: user.role, name: user.name });
     }
 }

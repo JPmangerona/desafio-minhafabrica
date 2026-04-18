@@ -13,10 +13,17 @@ export class UserService {
     }
 
     deleteUser = async (name: string) => {
-        const result = await this.userRepository.deleteByName(name);
-        if (result.deletedCount === 0) {
-            return { message: 'User not found' }
+        const user = await this.userRepository.findByName(name);
+        
+        if (!user) {
+            return { message: 'User not found' };
         }
+
+        if (user.role === 'admin') {
+            throw new Error('Não é permitido excluir usuários com a função de administrador.');
+        }
+
+        const result = await this.userRepository.deleteByName(name);
         return { message: 'User deleted' }
     }
 
@@ -32,8 +39,12 @@ export class UserService {
         }
 
         const secret = process.env.JWT_SECRET as string;
-        const token = jwt.sign({ name: user.name, email: user.email }, secret, { expiresIn: '1d' });
+        const token = jwt.sign({ name: user.name, email: user.email, role: user.role }, secret, { expiresIn: '1d' });
 
         return token;
+    }
+
+    updateUser = async (id: string, userData: any) => {
+        return await this.userRepository.updateUser(id, userData);
     }
 }

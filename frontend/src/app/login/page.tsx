@@ -20,10 +20,12 @@ export default function LoginPage() {
 
     try {
       const response = await api.post('/login', { email, password });
-      const { token } = response.data;
-      
+      const { token, role, name } = response.data;
+
       if (token) {
         localStorage.setItem('token', token);
+        localStorage.setItem('user_role', role);
+        localStorage.setItem('user_name', name);
         // Por enquanto redireciona para o admin dashboard
         router.push('/admin/dashboard');
       }
@@ -41,16 +43,16 @@ export default function LoginPage() {
         {/* Decorative elements */}
         <div className="absolute top-[-10%] right-[-10%] w-[400px] h-[400px] bg-white/5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-[-10%] left-[-10%] w-[300px] h-[300px] bg-white/5 rounded-full blur-3xl"></div>
-        
+
         <div className="relative z-10 text-white max-w-md">
-            <Link href="/" className="inline-flex items-center text-white/70 hover:text-white mb-12 transition-colors gap-2 group">
-                <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                Voltar para a loja
-            </Link>
-            <h1 className="text-5xl font-bold tracking-tighter mb-6">MinhaFábrica</h1>
-            <p className="text-xl text-white/80 font-light leading-relaxed">
-                Gestão simplificada, exposição premium. A plataforma definitiva para o seu catálogo industrial.
-            </p>
+          <Link href="/" className="inline-flex items-center text-white/70 hover:text-white mb-12 transition-colors gap-2 group">
+            <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+            Voltar para a loja
+          </Link>
+          <h1 className="text-5xl font-bold tracking-tighter mb-6"><span className="text-[#fa6c1a]">Minha</span><span className="text-[#fffff]">Fábrica</span><span className="text-[#737373]">.com</span></h1>
+          <p className="text-xl text-white/80 font-light leading-relaxed">
+            Gestão simplificada, exposição premium. A plataforma definitiva para o seu catálogo industrial.
+          </p>
         </div>
       </div>
 
@@ -58,9 +60,9 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center p-8 bg-white md:bg-transparent">
         <div className="w-full max-w-[400px]">
           <div className="mb-10 block md:hidden">
-             <h1 className="text-3xl font-bold tracking-tighter text-[#1A237E]">MinhaFábrica</h1>
+            <h1 className="text-3xl font-bold tracking-tighter text-[#1A237E]">MinhaFábrica</h1>
           </div>
-          
+
           <div className="mb-10">
             <h2 className="text-3xl font-bold text-slate-900 mb-2">Bem-vindo de volta</h2>
             <p className="text-slate-500">Acesse sua conta para gerenciar seu catálogo.</p>
@@ -93,7 +95,6 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex justify-between items-center ml-1">
                 <label className="text-sm font-medium text-slate-700">Senha</label>
-                <Link href="#" className="text-xs font-semibold text-[#1A237E] hover:underline">Esqueceu a senha?</Link>
               </div>
               <div className="relative group">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1A237E] transition-colors">
@@ -120,9 +121,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="mt-8 text-center text-sm text-slate-500">
-            Ainda não tem acesso? <Link href="#" className="text-[#1A237E] font-bold hover:underline">Falar com o suporte</Link>
-          </p>
         </div>
       </div>
     </div>

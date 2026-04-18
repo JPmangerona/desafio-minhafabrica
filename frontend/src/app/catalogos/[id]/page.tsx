@@ -22,8 +22,8 @@ export default async function CatalogoPage({ params }: { params: { id: string } 
   try {
     const resCat = await fetch('http://localhost:5000/category', { cache: 'no-store' });
     if (resCat.ok) {
-        const allCategories = await resCat.json();
-        categoryData = allCategories.find((c: any) => c._id === id);
+      const allCategories = await resCat.json();
+      categoryData = allCategories.find((c: any) => c._id === id);
     }
   } catch (error) {
     console.error("Erro ao buscar categorias:", error);
@@ -45,7 +45,7 @@ export default async function CatalogoPage({ params }: { params: { id: string } 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <StorefrontHeader />
-      
+
       <main className="flex-1 px-8 py-16 max-w-[1440px] mx-auto w-full">
         <div className="mb-12">
           <Link href="/" className="text-sm font-bold text-slate-400 hover:text-primary transition-colors flex items-center gap-2 mb-6">
@@ -65,17 +65,17 @@ export default async function CatalogoPage({ params }: { params: { id: string } 
             {displayProducts.map((product) => (
               <div key={product.id} className="group flex flex-col cursor-pointer">
                 <div className="relative aspect-[3/4] bg-surface-container-lowest rounded-xl overflow-hidden mb-4 border border-slate-100 shadow-sm">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:scale-110 transition-transform">
-                    <span className="material-symbols-outlined text-primary text-xl">
-                      favorite_border
-                    </span>
-                  </div>
+                  {product.image ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-slate-100 transition-transform duration-500 group-hover:scale-105" />
+                  )}
+
                   {product.badge && (
                     <div className="absolute top-4 left-4 bg-tertiary-container text-on-tertiary-container px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
                       {product.badge}
@@ -91,11 +91,11 @@ export default async function CatalogoPage({ params }: { params: { id: string } 
             ))}
           </div>
         ) : (
-           <div className="text-center py-24 bg-white rounded-3xl border border-slate-100 shadow-sm mt-8">
-             <span className="material-symbols-outlined text-6xl text-slate-300 mb-4 block">category</span>
-             <h3 className="text-2xl font-bold text-slate-700 mb-2">Ainda não há produtos aqui</h3>
-             <p className="text-slate-500">Volte mais tarde para ver os novos produtos desta coleção.</p>
-           </div>
+          <div className="text-center py-24 bg-white rounded-3xl border border-slate-100 shadow-sm mt-8">
+            <span className="material-symbols-outlined text-6xl text-slate-300 mb-4 block">category</span>
+            <h3 className="text-2xl font-bold text-slate-700 mb-2">Ainda não há produtos aqui</h3>
+            <p className="text-slate-500">Volte mais tarde para ver os novos produtos desta coleção.</p>
+          </div>
         )}
       </main>
 
@@ -103,13 +103,15 @@ export default async function CatalogoPage({ params }: { params: { id: string } 
       <footer className="bg-white border-t border-slate-100 py-12">
         <div className="flex flex-col md:flex-row justify-between items-center px-12 max-w-[1440px] mx-auto w-full">
           <div className="mb-8 md:mb-0">
-            <span className="font-bold text-slate-900 text-lg"><span className="text-[#fa6c1a]">Minha</span>Fábrica</span>
+            <span className="font-bold text-slate-900 text-lg">
+              <span className="text-[#fa6c1a]">Minha</span><span className="text-[#1A237E]">Fábrica</span><span className="text-[#737373]">.com</span>
+            </span>
             <p className="text-slate-500 text-sm mt-2 max-w-sm">
-              Conectando você aos melhores fabricantes de móveis e decorações artesanais.
+              Encontre seu melhor estilo.
             </p>
           </div>
           <p className="text-slate-400 text-sm">
-            © 2024 MinhaFábrica. Todos os direitos reservados.
+            © 2026 Opty. Todos os direitos reservados.
           </p>
         </div>
       </footer>

@@ -5,6 +5,7 @@ import { CategoryController } from "./controllers/CategoryController.js";
 import { ProductController } from "./controllers/ProductController.js";
 import { LogoutController } from "./controllers/LogoutController.js";
 import { authenticated } from "./middleware/authenticated.js";
+import { authorized } from "./middleware/authorized.js";
 import { upload } from "./config/multer.js";
 
 export const router = Router();
@@ -17,23 +18,24 @@ const logoutController = new LogoutController();
 // Login
 router.post('/login', loginController.login);
 
-// Usuários
-router.post('/user', userController.createUser);
-router.get('/user', authenticated, userController.getAllUsers);
-router.delete('/user', userController.deleteUser);
+// Usuários (Apenas Admin)
+router.post('/user', authenticated, authorized(['admin']), userController.createUser);
+router.get('/user', authenticated, authorized(['admin']), userController.getAllUsers);
+router.put('/user/:id', authenticated, authorized(['admin']), userController.updateUser);
+router.delete('/user', authenticated, authorized(['admin']), userController.deleteUser);
 
 // Categorias
-router.post('/category', upload.single('imagem'), categoryController.create);
-router.get('/category', categoryController.list);
-router.put('/category/:id', upload.single('imagem'), categoryController.update);
-router.delete('/category/:id', categoryController.delete);
+router.post('/category', authenticated, authorized(['admin', 'editor']), upload.single('imagem'), categoryController.create);
+router.get('/category', categoryController.list); // Público para a vitrine
+router.put('/category/:id', authenticated, authorized(['admin', 'editor']), upload.single('imagem'), categoryController.update);
+router.delete('/category/:id', authenticated, authorized(['admin']), categoryController.delete);
 
 // Produtos
-router.post('/product', upload.single('imagem'), productController.create);
-router.get('/product', productController.list);
-router.get('/product/category/:id', productController.listByCategory);
-router.put('/product/:id', upload.single('imagem'), productController.update);
-router.delete('/product/:id', productController.delete);
+router.post('/product', authenticated, authorized(['admin', 'editor']), upload.single('imagem'), productController.create);
+router.get('/product', productController.list); // Público para a vitrine
+router.get('/product/category/:id', productController.listByCategory); // Público
+router.put('/product/:id', authenticated, authorized(['admin', 'editor']), upload.single('imagem'), productController.update);
+router.delete('/product/:id', authenticated, authorized(['admin']), productController.delete);
 
 // Logout
 router.post('/logout', logoutController.logout);

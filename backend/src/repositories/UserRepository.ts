@@ -10,12 +10,20 @@ export class UserRepository {
         return await User.find();
     }
 
+    findByName = async (name: string) => {
+        return await User.findOne({ name });
+    }
+
     deleteByName = async (name: string): Promise<any> => {
-        // Soft delete alterando para ativo: false
-        return await User.updateOne({ name }, { ativo: false });
+        // Hard delete removendo o documento permanentemente
+        return await User.deleteOne({ name });
     }
 
     getUserByEmailAndPassword = async (email: string, password: string) => {
         return await User.findOne({ email, password, ativo: true });
+    }
+
+    updateUser = async (id: string, userData: any) => {
+        return await User.findByIdAndUpdate(id, userData, { new: true });
     }
 }

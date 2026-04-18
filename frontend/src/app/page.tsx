@@ -5,22 +5,22 @@ const fallbackCategories = [
   {
     nome: 'Mobiliário Arquitetural',
     count: '124 itens',
-    imagem_url: 'https://picsum.photos/seed/arch-furniture/600/700',
+    imagem_url: '',
   },
   {
     nome: 'Iluminação Ambiente',
     count: '86 itens',
-    imagem_url: 'https://picsum.photos/seed/ambient-light/600/300',
+    imagem_url: '',
   },
   {
     nome: 'Decoração Artesanal',
     count: '210 itens',
-    imagem_url: 'https://picsum.photos/seed/artisan-decor/600/300',
+    imagem_url: '',
   },
   {
     nome: 'Têxteis Premium',
     count: '54 itens',
-    imagem_url: 'https://picsum.photos/seed/premium-textiles/600/700',
+    imagem_url: '',
   },
 ];
 
@@ -30,7 +30,7 @@ const fallbackProducts = [
     name: 'Poltrona Esfera',
     category: 'Mobiliário',
     price: 'R$ 9.250,00',
-    image: 'https://picsum.photos/seed/sphere-chair/400/533',
+    image: '',
     badge: null,
   },
   {
@@ -38,7 +38,7 @@ const fallbackProducts = [
     name: 'Luminária Pendente Onix',
     category: 'Iluminação',
     price: 'R$ 4.600,00',
-    image: 'https://picsum.photos/seed/onix-pendant/400/533',
+    image: '',
     badge: 'Limitado',
   },
   {
@@ -46,7 +46,7 @@ const fallbackProducts = [
     name: 'Mesa de Apoio Travertino',
     category: 'Sala de Estar',
     price: 'R$ 6.200,00',
-    image: 'https://picsum.photos/seed/travertine-table/400/533',
+    image: '',
     badge: null,
   },
   {
@@ -54,7 +54,7 @@ const fallbackProducts = [
     name: 'Tapete Textura Lã',
     category: 'Têxteis',
     price: 'R$ 12.000,00',
-    image: 'https://picsum.photos/seed/wool-texture/400/533',
+    image: '',
     badge: null,
   },
   {
@@ -62,7 +62,7 @@ const fallbackProducts = [
     name: 'Sofá Modular Cleo',
     category: 'Mobiliário',
     price: 'R$ 28.500,00',
-    image: 'https://picsum.photos/seed/cleo-sofa/400/533',
+    image: '',
     badge: 'Novo',
   },
   {
@@ -70,7 +70,7 @@ const fallbackProducts = [
     name: 'Vaso Cerâmica Orgânica',
     category: 'Decoração',
     price: 'R$ 890,00',
-    image: 'https://picsum.photos/seed/organic-vase/400/533',
+    image: '',
     badge: null,
   },
   {
@@ -78,7 +78,7 @@ const fallbackProducts = [
     name: 'Luminária de Chão Arc',
     category: 'Iluminação',
     price: 'R$ 3.400,00',
-    image: 'https://picsum.photos/seed/arc-floor-lamp/400/533',
+    image: '',
     badge: null,
   },
   {
@@ -86,7 +86,7 @@ const fallbackProducts = [
     name: 'Cadeira Barcelona',
     category: 'Mobiliário',
     price: 'R$ 7.800,00',
-    image: 'https://picsum.photos/seed/barcelona-chair/400/533',
+    image: '',
     badge: 'Limitado',
   },
 ];
@@ -118,12 +118,12 @@ export default async function StorefrontHome() {
     id: heroCat._id,
     title: heroCat.nome,
     description: heroCat.descricao || 'Descubra mobiliário escultural e objetos curados desenvolvidos para transformar seu espaço em uma galeria particular.',
-    image: heroCat.imagem_url || 'https://picsum.photos/seed/luxury-living-room/1400/700'
+    image: heroCat.imagem_url || ''
   } : {
     id: null,
     title: 'Coleção Overzide',
     description: 'Descubra mobiliário escultural e objetos curados desenvolvidos para transformar seu espaço em uma galeria particular.',
-    image: 'https://picsum.photos/seed/luxury-living-room/1400/700'
+    image: ''
   };
 
   // Bento Grid (Catálogos ordem 2, 3, 4, 5)
@@ -165,12 +165,16 @@ export default async function StorefrontHome() {
       {/* ── Hero Section ── */}
       <section className="px-8 py-12 max-w-[1440px] mx-auto" id="colecoes">
         <div className="relative h-[600px] w-full rounded-[3rem] overflow-hidden flex items-center group">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={heroData.image}
-            alt={heroData.title}
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-          />
+          {heroData.image ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={heroData.image}
+              alt={heroData.title}
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+          ) : (
+            <div className="absolute inset-0 w-full h-full bg-slate-200 transition-transform duration-700 group-hover:scale-105" />
+          )}
           <div className="relative z-10 px-16 max-w-2xl">
             <span className="text-[11px] uppercase tracking-[0.2em] text-white mb-4 block font-medium">
               Destaque Principal
@@ -218,12 +222,16 @@ export default async function StorefrontHome() {
           {/* Column 1 — tall */}
           {displayCategories[0].id ? (
             <Link href={`/catalogos/${displayCategories[0].id}`} className="group relative aspect-square md:aspect-auto md:h-[500px] rounded-[3rem] overflow-hidden bg-surface-container-low cursor-pointer block">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={displayCategories[0].image}
-                alt={displayCategories[0].name}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
+              {displayCategories[0].image ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={displayCategories[0].image}
+                  alt={displayCategories[0].name}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+              ) : (
+                <div className="absolute inset-0 w-full h-full bg-slate-200" />
+              )}
               <div className="absolute inset-0 bg-black/5 group-hover:bg-black/20 transition-all" />
               <div className="absolute bottom-10 left-10">
                 <h3 className="text-2xl font-bold text-white mb-1">{displayCategories[0].name}</h3>
@@ -328,7 +336,7 @@ export default async function StorefrontHome() {
             Produtos Mais Procurados
           </h2>
           <p className="text-on-surface-variant max-w-xl mx-auto font-light">
-            Produtos versáteis que se adaptam a qualquer ocasião, e com tecnologia que permite conforto e durabilidade.
+            Produtos versáteis que se adaptam a qualquer ocasião, com tecnologia que permite conforto e durabilidade.
           </p>
         </div>
 
@@ -336,26 +344,24 @@ export default async function StorefrontHome() {
           {displayProducts.map((product) => (
             <div key={product.id} className="group flex flex-col cursor-pointer">
               <div className="relative aspect-[3/4] bg-surface-container-lowest rounded-xl overflow-hidden mb-4">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:scale-110 transition-transform">
-                  <span className="material-symbols-outlined text-primary text-xl">
-                    favorite_border
-                  </span>
-                </div>
+                {product.image ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-slate-100 transition-transform duration-500 group-hover:scale-105" />
+                )}
+
                 {product.badge && (
                   <div className="absolute top-4 left-4 bg-tertiary-container text-on-tertiary-container px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
                     {product.badge}
                   </div>
                 )}
               </div>
-              <span className="text-[10px] uppercase tracking-wider text-on-surface-variant mb-1 font-medium">
-                {product.category}
-              </span>
+
               <h3 className="text-lg font-bold text-primary mb-1">{product.name}</h3>
               <p className="text-on-primary-container font-semibold">{product.price}</p>
             </div>
@@ -380,28 +386,27 @@ export default async function StorefrontHome() {
 
           <div className="relative z-10 md:w-1/2">
             <h2 className="text-4xl font-bold text-on-primary mb-4 -tracking-tight">
-              Junte-se ao Círculo Exclusivo
+              Receba novidades
             </h2>
             <p className="text-on-primary-container text-lg max-w-md">
-              Seja o primeiro a receber acesso exclusivo a novidades, histórias de artesãos
-              e dicas de curadoria de interiores.
+              Seja o primeiro a receber novidades e descontos exclusivos direto no seu e-mail.
             </p>
           </div>
 
           <div className="relative z-10 md:w-1/3 w-full">
             <div className="flex flex-col gap-4">
-              <div className="bg-surface-container-low/20 border-b border-on-primary-container/30 pb-2 flex items-center">
+              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-6 py-3 flex items-center gap-4 shadow-2xl">
                 <input
-                  className="bg-transparent border-none outline-none text-on-primary placeholder:text-on-primary-container/60 w-full text-sm"
+                  className="bg-transparent border-none outline-none text-white placeholder:text-white/60 w-full text-sm"
                   placeholder="Seu endereço de e-mail"
                   type="email"
                 />
-                <button className="text-on-primary font-bold uppercase tracking-widest text-xs shrink-0 hover:opacity-70 transition-opacity">
-                  Entrar
+                <button className="bg-white text-[#1A237E] font-black uppercase tracking-widest text-[10px] px-6 py-2 rounded-full hover:bg-slate-100 transition-all active:scale-95 shrink-0">
+                  Enviar
                 </button>
               </div>
               <p className="text-[10px] text-on-primary-container/60 uppercase tracking-widest">
-                Ao entrar você concorda com nossa política de privacidade
+                Ao enviar você concorda com nossa política de privacidade
               </p>
             </div>
           </div>
@@ -412,10 +417,11 @@ export default async function StorefrontHome() {
       <footer className="bg-slate-50 border-t border-slate-100 py-12">
         <div className="flex flex-col md:flex-row justify-between items-center px-12 max-w-[1440px] mx-auto w-full">
           <div className="mb-8 md:mb-0">
-            <span className="font-bold text-slate-900 text-lg">MinhaFábrica</span>
+            <span className="font-bold text-slate-900 text-lg">
+              <span className="text-[#fa6c1a]">Minha</span><span className="text-[#1A237E]">Fábrica</span><span className="text-[#737373]">.com</span>
+            </span>
             <p className="text-slate-500 text-sm mt-2 max-w-xs">
-              Curadoria dos melhores elementos arquiteturais para espaços modernos em todo o
-              mundo.
+              Encontre seu melhor estilo.
             </p>
           </div>
           <div className="flex flex-wrap justify-center gap-8 mb-8 md:mb-0">
@@ -434,15 +440,15 @@ export default async function StorefrontHome() {
           </div>
           <div className="text-center md:text-right">
             <div className="flex justify-center md:justify-end gap-4 mb-4">
-              <span className="material-symbols-outlined text-slate-400 cursor-pointer hover:text-primary">
+              {/* <span className="material-symbols-outlined text-slate-400 cursor-pointer hover:text-primary">
                 language
               </span>
               <span className="material-symbols-outlined text-slate-400 cursor-pointer hover:text-primary">
                 share
-              </span>
+              </span> */}
             </div>
             <p className="text-slate-500 text-xs">
-              © 2024 MinhaFábrica. Todos os direitos reservados.
+              © 2026 Opty. Todos os direitos reservados.
             </p>
           </div>
         </div>

@@ -2,7 +2,7 @@ export interface User {
     _id: string;
     name: string;
     email: string;
-    role: 'admin' | 'client' | 'viewer' | 'editor';
+    role: 'admin' | 'cliente' | 'visualizador' | 'editor';
     cpf?: string;
     endereco?: {
         rua: string;
