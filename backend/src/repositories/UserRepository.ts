@@ -14,9 +14,17 @@ export class UserRepository {
         return await User.findOne({ name });
     }
 
+    findById = async (id: string) => {
+        return await User.findById(id);
+    }
+
     deleteByName = async (name: string): Promise<any> => {
         // Hard delete removendo o documento permanentemente
         return await User.deleteOne({ name });
+    }
+
+    deleteById = async (id: string): Promise<any> => {
+        return await User.findByIdAndDelete(id);
     }
 
     getUserByEmailAndPassword = async (email: string, password: string) => {

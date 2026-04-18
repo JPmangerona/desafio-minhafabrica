@@ -28,9 +28,9 @@ export class UserController {
 
     deleteUser = async (request: Request, response: Response) => {
         const userService = new UserService();
-        const { name } = request.body;
+        const { id } = request.params;
         
-        const result = await userService.deleteUser(name);
+        const result = await userService.deleteUser(id);
         
         return response.status(200).json({
             success: true,

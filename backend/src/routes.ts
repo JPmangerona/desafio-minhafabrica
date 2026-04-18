@@ -36,7 +36,7 @@ router.get(`${v1Prefix}/dashboard`, authenticated, authorized(['admin']), dashbo
 router.get(`${v1Prefix}/users`, authenticated, authorized(['admin']), userController.getAllUsers);
 router.post(`${v1Prefix}/users`, authenticated, authorized(['admin']), userController.createUser);
 router.put(`${v1Prefix}/users/:id`, authenticated, authorized(['admin']), userController.updateUser);
-router.delete(`${v1Prefix}/users`, authenticated, authorized(['admin']), userController.deleteUser);
+router.delete(`${v1Prefix}/users/:id`, authenticated, authorized(['admin']), userController.deleteUser);
 
 // Categorias (Admin/Editor pode criar/editar, Público pode listar)
 router.get(`${v1Prefix}/categories`, categoryController.list); // Público

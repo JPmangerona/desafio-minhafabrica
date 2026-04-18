@@ -93,7 +93,7 @@ export default function UsuariosPage() {
     }
 
     try {
-      await userService.delete(user.name);
+      await userService.delete(user._id);
       await fetchUsers();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Erro ao excluir usuário');

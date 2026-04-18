@@ -16,10 +16,8 @@ export const userService = {
     return response.data.data;
   },
 
-  async delete(name: string) {
-    // Nota: A API atual espera o nome no body para delete (conformeUserController legado)
-    // Mas o PDF sugere delete por ID. Vou manter compatível com o backend atual.
-    const response = await api.delete('/users', { data: { name } });
+  async delete(id: string) {
+    const response = await api.delete(`/users/${id}`);
     return response.data.data;
   }
 };

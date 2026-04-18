@@ -29,6 +29,9 @@ export default function LoginPage() {
         localStorage.setItem('user_name', name);
         localStorage.setItem('user_email', email); 
         
+        // Define um cookie para que o Middleware do Next.js consiga ler no servidor
+        document.cookie = `auth_token=${token}; path=/; max-age=86400; SameSite=Lax`;
+        
         router.push('/admin/dashboard');
       }
     } catch (err: any) {

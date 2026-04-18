@@ -33,8 +33,8 @@ export class UserService {
         return await this.userRepository.findAll();
     }
 
-    deleteUser = async (name: string) => {
-        const user = await this.userRepository.findByName(name);
+    deleteUser = async (id: string) => {
+        const user = await this.userRepository.findById(id);
         
         if (!user) {
             throw new AppError('Usuário não encontrado', 404);
@@ -44,7 +44,7 @@ export class UserService {
             throw new AppError('Não é permitido excluir usuários com a função de administrador.', 403);
         }
 
-        await this.userRepository.deleteByName(name);
+        await this.userRepository.deleteById(id);
         return { message: 'Usuário excluído com sucesso' };
     }
 

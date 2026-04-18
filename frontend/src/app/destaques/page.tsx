@@ -4,7 +4,8 @@ import Link from 'next/link';
 export default async function DestaquesPage() {
   let bdProducts: any[] = [];
   try {
-    const resProd = await fetch('http://localhost:5000/product', { cache: 'no-store' });
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const resProd = await fetch(`${apiUrl}/api/v1/products`, { cache: 'no-store' });
     if (resProd.ok) {
       bdProducts = await resProd.json();
     }
