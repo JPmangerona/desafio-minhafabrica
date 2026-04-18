@@ -26,6 +26,7 @@ export default function LoginPage() {
         localStorage.setItem('token', token);
         localStorage.setItem('user_role', role);
         localStorage.setItem('user_name', name);
+        localStorage.setItem('user_email', email); // Salva o email para identificar o usuário logado
         // Por enquanto redireciona para o admin dashboard
         router.push('/admin/dashboard');
       }

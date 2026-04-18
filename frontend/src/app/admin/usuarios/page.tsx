@@ -116,6 +116,15 @@ export default function UsuariosPage() {
 
     try {
       await api.put(`/user/${editingUser._id}`, editingUser);
+      
+      // Sincroniza o localStorage se o usuário editado for o mesmo que está logado
+      if (editingUser.email === localStorage.getItem('user_email')) {
+        localStorage.setItem('user_name', editingUser.name);
+        localStorage.setItem('user_role', editingUser.role);
+        // Despacha um evento customizado para notificar a Sidebar e outros componentes
+        window.dispatchEvent(new CustomEvent('user-profile-updated'));
+      }
+
       await fetchUsers();
       setShowEditModal(false);
       setEditingUser(null);
@@ -196,12 +205,7 @@ export default function UsuariosPage() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <button className="p-2 text-on-surface-variant hover:bg-white rounded-lg transition-colors">
-                <span className="material-symbols-outlined">filter_list</span>
-              </button>
-              <button className="p-2 text-on-surface-variant hover:bg-white rounded-lg transition-colors">
-                <span className="material-symbols-outlined">sort</span>
-              </button>
+              {/* Filtros removidos conforme solicitação */}
             </div>
           </div>
 
@@ -291,13 +295,20 @@ export default function UsuariosPage() {
                                 >
                                   <Edit3 size={18} />
                                 </button>
-                                <button
-                                  onClick={() => handleDelete(user)}
-                                  className="p-2 rounded-xl transition-all hover:bg-red-50 text-slate-400 hover:text-red-500"
-                                  title="Excluir Permanentemente"
-                                >
-                                  <Trash2 size={18} />
-                                </button>
+                                
+                                {user.role !== 'admin' ? (
+                                  <button
+                                    onClick={() => handleDelete(user)}
+                                    className="p-2 rounded-xl transition-all hover:bg-red-50 text-slate-400 hover:text-red-500"
+                                    title="Excluir Permanentemente"
+                                  >
+                                    <Trash2 size={18} />
+                                  </button>
+                                ) : (
+                                  <div className="p-2 text-slate-200 cursor-not-allowed" title="Administradores não podem ser excluídos">
+                                    <Trash2 size={18} />
+                                  </div>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -481,7 +492,8 @@ export default function UsuariosPage() {
                 </div>
                 <button
                   onClick={() => setEditingUser({ ...editingUser, ativo: !editingUser.ativo })}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${editingUser.ativo ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                  disabled={editingUser.role === 'admin'}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${editingUser.ativo ? 'bg-emerald-500' : 'bg-slate-300'} ${editingUser.role === 'admin' ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${editingUser.ativo ? 'translate-x-6' : 'translate-x-1'}`}
@@ -519,12 +531,18 @@ export default function UsuariosPage() {
                 </label>
                 <select
                   value={editingUser.role}
+                  disabled={editingUser.role === 'admin'}
                   onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
-                  className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-secondary/30 transition-all"
+                  className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-secondary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {roles.filter(r => r !== 'admin').map((r) => (
-                    <option key={r} value={r}>{roleConfig[r]?.label || r}</option>
-                  ))}
+                  {/* Se for admin, mostramos apenas a opção admin desabilitada */}
+                  {editingUser.role === 'admin' ? (
+                    <option value="admin">Administrador</option>
+                  ) : (
+                    roles.filter(r => r !== 'admin').map((r) => (
+                      <option key={r} value={r}>{roleConfig[r]?.label || r}</option>
+                    ))
+                  )}
                 </select>
               </div>
 

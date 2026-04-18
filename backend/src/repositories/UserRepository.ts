@@ -23,6 +23,10 @@ export class UserRepository {
         return await User.findOne({ email, password, ativo: true });
     }
 
+    findByEmail = async (email: string) => {
+        return await User.findOne({ email, ativo: true });
+    }
+
     updateUser = async (id: string, userData: any) => {
         return await User.findByIdAndUpdate(id, userData, { new: true });
     }

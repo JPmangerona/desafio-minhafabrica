@@ -29,9 +29,17 @@ export function AdminSidebar() {
   const [role, setRole] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
 
-  useEffect(() => {
+  const refreshUserData = () => {
     setRole(localStorage.getItem('user_role'));
     setUserName(localStorage.getItem('user_name'));
+  };
+
+  useEffect(() => {
+    refreshUserData();
+
+    // Ouvinte para atualizações de perfil em tempo real sem refresh
+    window.addEventListener('user-profile-updated', refreshUserData);
+    return () => window.removeEventListener('user-profile-updated', refreshUserData);
   }, []);
 
   const handleLogout = async () => {
