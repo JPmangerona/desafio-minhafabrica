@@ -104,7 +104,6 @@ export default function DashboardPage() {
                   <div className="flex-1">
                     <div className="flex justify-between items-start">
                       <p className="text-sm font-bold text-slate-900">{item.action}</p>
-                      <span className="text-[10px] font-semibold text-slate-400">{item.time}</span>
                     </div>
                     <p className="text-sm text-slate-600 mt-1">{item.item}</p>
                     <div className="flex items-center gap-2 mt-2">
