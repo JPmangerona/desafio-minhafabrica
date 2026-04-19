@@ -65,7 +65,7 @@ export default function DashboardPage() {
           </span>
         </nav>
         <h2 className="text-4xl font-black text-slate-900 -tracking-tight">Dashboard</h2>
-        <p className="text-slate-500 mt-2">Visão geral da sua fábrica e catálogo em tempo real.</p>
+        <p className="text-slate-500 mt-2">Visão geral em tempo real.</p>
       </div>
 
       {/* Stats Grid */}

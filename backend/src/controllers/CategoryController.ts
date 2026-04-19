@@ -38,12 +38,21 @@ export class CategoryController {
     }
 
     delete = async (req: Request, res: Response) => {
-        const id = req.params.id as string;
-        await this.categoryService.deleteCategory(id);
-        return res.status(200).json({ 
-            success: true,
-            message: "Categoria removida permanentemente" 
-        });
+        try {
+            const id = req.params.id as string;
+            console.log(`[BACKEND] Tentando excluir categoria ID: ${id}`);
+            await this.categoryService.deleteCategory(id);
+            return res.status(200).json({ 
+                success: true,
+                message: "Categoria removida permanentemente" 
+            });
+        } catch (error: any) {
+            console.error(`[BACKEND ERROR] Falha ao excluir categoria:`, error);
+            return res.status(error.statusCode || 500).json({
+                success: false,
+                message: error.message || "Erro no servidor ao excluir catálogo."
+            });
+        }
     }
 
     update = async (req: Request, res: Response) => {

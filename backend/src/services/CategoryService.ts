@@ -1,5 +1,6 @@
 import { CategoryRepository } from "../repositories/CategoryRepository.js";
 import { AppError } from "../shared/errors/AppError.js";
+import Product from "../models/ProductModel.js";
 
 export class CategoryService {
     private categoryRepository = new CategoryRepository();
@@ -34,6 +35,13 @@ export class CategoryService {
     }
 
     deleteCategory = async (id: string) => {
+        // Verificar se existem produtos vinculados
+        const productsCount = await Product.countDocuments({ categoria: id });
+        
+        if (productsCount > 0) {
+            throw new AppError(`Não é possível excluir: existem ${productsCount} produtos vinculados a este catálogo. Primeiro, mova ou exclua esses produtos.`, 400);
+        }
+
         return await this.categoryRepository.delete(id);
     }
 

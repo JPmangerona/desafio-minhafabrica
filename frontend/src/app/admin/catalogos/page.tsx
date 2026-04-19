@@ -140,10 +140,10 @@ export default function CatalogosPage() {
   const handleDelete = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir este catálogo?')) {
       try {
-        await api.delete(`/category/${id}`);
+        await api.delete(`/categories/${id}`);
         await fetchCategories();
-      } catch (err) {
-        alert('Erro ao excluir catálogo.');
+      } catch (err: any) {
+        alert(err.response?.data?.message || 'Erro ao excluir catálogo.');
       }
     }
   };
@@ -261,9 +261,6 @@ export default function CatalogosPage() {
                       Catálogo
                     </th>
                     <th className="px-8 py-6 text-[10px] uppercase tracking-widest font-bold text-slate-500">
-                      Descrição
-                    </th>
-                    <th className="px-8 py-6 text-[10px] uppercase tracking-widest font-bold text-slate-500">
                       Ordem
                     </th>
                     <th className="px-8 py-6 text-[10px] uppercase tracking-widest font-bold text-slate-500">
@@ -309,11 +306,6 @@ export default function CatalogosPage() {
                               {cat.nome}
                             </p>
                           </div>
-                        </td>
-                        <td className="px-8 py-5">
-                          <span className="text-sm text-slate-500 line-clamp-1">
-                            {cat.descricao || '—'}
-                          </span>
                         </td>
                         <td className="px-8 py-5">
                           <span className="text-xs font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">

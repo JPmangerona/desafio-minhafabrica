@@ -44,7 +44,7 @@ export default async function CatalogoPage({ params }: { params: { id: string } 
   }));
 
   const catName = categoryData?.nome || "Coleção";
-  const catDesc = categoryData?.descricao || "Explore os lindos produtos selecionados desta coleção e transforme seu projeto.";
+  const catDesc = categoryData?.descricao || "Explore os lindos produtos selecionados desta coleção.";
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
