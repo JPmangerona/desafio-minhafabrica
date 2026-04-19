@@ -249,7 +249,7 @@ export default async function StorefrontHome() {
               </div>
 
               <h3 className="text-lg font-bold text-primary mb-1">{product.name}</h3>
-              <p className="text-on-primary-container font-semibold">{product.price}</p>
+              <p className="text-black font-semibold">{product.price}</p>
             </div>
           ))}
         </div>
