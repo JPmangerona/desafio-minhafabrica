@@ -93,7 +93,7 @@ export default function CatalogosPage() {
       await fetchCategories();
       setShowModal(false);
       setEditingId(null);
-      setNewCategory({ nome: '', descricao: '', ordem: 0 });
+      setNewCategory({ nome: '', descricao: '', ordem: 0, ativo: true });
       setImageFile(null);
       setImagePreview(null);
     } catch (err: any) {
