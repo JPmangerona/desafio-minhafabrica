@@ -521,7 +521,7 @@ export default function UsuariosPage() {
                 <select
                   value={editingUser.role}
                   disabled={editingUser.role === 'admin'}
-                  onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
+                  onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value as any })}
                   className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-secondary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {/* Se for admin, mostramos apenas a opção admin desabilitada */}
