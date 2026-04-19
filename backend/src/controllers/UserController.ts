@@ -30,7 +30,7 @@ export class UserController {
         const userService = new UserService();
         const { id } = request.params;
         
-        const result = await userService.deleteUser(id);
+        const result = await userService.deleteUser(id as string);
         
         return response.status(200).json({
             success: true,
@@ -43,7 +43,7 @@ export class UserController {
         const userData = request.body;
         const userService = new UserService();
 
-        const updatedUser = await userService.updateUser(id, userData);
+        const updatedUser = await userService.updateUser(id as string, userData);
         
         return response.status(200).json({
             success: true,

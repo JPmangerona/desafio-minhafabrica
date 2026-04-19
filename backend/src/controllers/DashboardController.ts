@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import User from "../models/UserModel.js";
 import Product from "../models/ProductModel.js";
+import Category from "../models/CategoryModel.js";
 
 export class DashboardController {
     getStats = async (req: Request, res: Response) => {
@@ -11,7 +12,7 @@ export class DashboardController {
                 Category.countDocuments({ ativo: true })
             ]);
 
-            const inventoryValue = products.reduce((acc, p) => acc + (p.custo || 0) * p.estoque, 0);
+            const inventoryValue = products.reduce((acc: number, p: any) => acc + (p.custo || 0) * p.estoque, 0);
 
             return res.status(200).json({
                 success: true,
