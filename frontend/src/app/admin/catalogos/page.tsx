@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { categoryService } from '@/services/category.service';
 import { Category } from '@/types';
+import api from '@/services/api';
 
 export default function CatalogosPage() {
   const [categories, setCategories] = useState<Category[]>([]);
