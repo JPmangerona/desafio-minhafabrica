@@ -144,9 +144,9 @@ export default function DashboardPage() {
           <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8">
             <h3 className="text-lg font-bold text-slate-900 mb-4">Links Rápidos</h3>
             <div className="grid grid-cols-2 gap-3">
-              <button className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-600 transition-colors">Documentação</button>
-              <button className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-600 transition-colors">Linkedin</button>
-              <button className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-600 transition-colors">GitHub</button>
+              <a href="https://drive.google.com/drive/folders/1e09LwVyItXOToSwsQqc2LY4jf4WaBrYX?usp=sharing" className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-600 transition-colors text-center block">Documentação</a>
+              <a href="https://www.linkedin.com/in/jp-mangerona" className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-600 transition-colors text-center block">Linkedin</a>
+              <a href="https://github.com/JPmangerona/desafio-minhafabrica" className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-600 transition-colors text-center block">GitHub</a>
             </div>
           </div>
         </div>
