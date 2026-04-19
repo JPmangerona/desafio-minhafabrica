@@ -7,7 +7,8 @@ export default async function DestaquesPage() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
     const resProd = await fetch(`${apiUrl}/api/v1/products`, { cache: 'no-store' });
     if (resProd.ok) {
-      bdProducts = await resProd.json();
+      const result = await resProd.json();
+      bdProducts = result.data || [];
     }
   } catch (error) {
     console.error("Erro ao buscar produtos:", error);
