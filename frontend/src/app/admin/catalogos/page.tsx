@@ -24,10 +24,10 @@ import api from '@/services/api';
 
 export default function CatalogosPage() {
   const [categories, setCategories] = useState<Category[]>([]);
-   const [loading, setLoading] = useState(true);
-   const [error, setError] = useState('');
-   const [modalError, setModalError] = useState('');
-   const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [modalError, setModalError] = useState('');
+  const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newCategory, setNewCategory] = useState({ nome: '', descricao: '', ordem: 0, ativo: true });
@@ -35,6 +35,7 @@ export default function CatalogosPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [sortByOrder, setSortByOrder] = useState(false);
   const [page, setPage] = useState(1);
+  const [orderInput, setOrderInput] = useState('');
 
   const [role, setRole] = useState<string | null>(null);
 
@@ -78,10 +79,25 @@ export default function CatalogosPage() {
 
   const handleCreateOrUpdate = async () => {
     try {
+      setModalError('');
+      if (!newCategory.nome) {
+        setModalError('O nome do catálogo é obrigatório.');
+        return;
+      }
+      if (!orderInput) {
+        setModalError('A ordem de exibição é obrigatória.');
+        return;
+      }
+
+      if (newCategory.nome.length > 80 || newCategory.descricao.length > 200 || orderInput.length > 2) {
+        setModalError('Corrija os campos com excesso de caracteres antes de salvar.');
+        return;
+      }
+
       const formData = new FormData();
       formData.append('nome', newCategory.nome);
       formData.append('descricao', newCategory.descricao);
-      formData.append('ordem', String(newCategory.ordem));
+      formData.append('ordem', orderInput);
       formData.append('ativo', String(newCategory.ativo));
       if (imageFile) formData.append('imagem', imageFile);
 
@@ -94,7 +110,9 @@ export default function CatalogosPage() {
       await fetchCategories();
       setShowModal(false);
       setEditingId(null);
+      setModalError('');
       setNewCategory({ nome: '', descricao: '', ordem: 0, ativo: true });
+      setOrderInput('');
       setImageFile(null);
       setImagePreview(null);
     } catch (err: any) {
@@ -112,6 +130,8 @@ export default function CatalogosPage() {
       ordem: cat.ordem,
       ativo: cat.ativo !== undefined ? cat.ativo : true,
     });
+    setOrderInput(String(cat.ordem));
+    setModalError('');
     setImagePreview(cat.imagem_url || null);
     setImageFile(null);
     setShowModal(true);
@@ -152,6 +172,7 @@ export default function CatalogosPage() {
               setEditingId(null);
               setNewCategory({ nome: '', descricao: '', ordem: 0, ativo: true });
               setModalError('');
+              setOrderInput('');
               setImagePreview(null);
               setImageFile(null);
               setShowModal(true);
@@ -301,17 +322,17 @@ export default function CatalogosPage() {
                         </td>
                         <td className="px-8 py-5">
                           <div className="flex items-center gap-2">
-                             {cat.ativo ? (
-                               <>
-                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                                 <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600">Ativo</span>
-                               </>
-                             ) : (
-                               <>
-                                 <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Inativo</span>
-                               </>
-                             )}
+                            {cat.ativo ? (
+                              <>
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600">Ativo</span>
+                              </>
+                            ) : (
+                              <>
+                                <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Inativo</span>
+                              </>
+                            )}
                           </div>
                         </td>
                         <td className="px-8 py-5 text-right">
@@ -403,54 +424,87 @@ export default function CatalogosPage() {
 
             <div className="p-8 space-y-6">
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest font-bold text-slate-500 block">
-                  Nome do Catálogo
-                </label>
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] uppercase tracking-widest font-bold text-slate-500 block">
+                    Nome do Catálogo
+                  </label>
+                  {newCategory.nome.length > 80 && (
+                    <span className="text-[9px] text-red-500 font-bold tracking-tight animate-pulse">
+                      Erro: Máximo 80 caracteres
+                    </span>
+                  )}
+                </div>
                 <input
                   type="text"
-                  placeholder="Ex: Móveis de Sala"
+                  placeholder="Ex: Coleção Overzide"
                   value={newCategory.nome}
-                  onChange={(e) => setNewCategory({ ...newCategory, nome: e.target.value })}
+                  onChange={(e) => {
+                    if (e.target.value.length <= 81) {
+                      setNewCategory({ ...newCategory, nome: e.target.value });
+                    }
+                  }}
                   className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-[#1A237E]/30 transition-all text-sm"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest font-bold text-slate-500 block">
-                  Descrição (opcional)
-                </label>
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] uppercase tracking-widest font-bold text-slate-500 block">
+                    Descrição (opcional)
+                  </label>
+                  {newCategory.descricao.length > 200 && (
+                    <span className="text-[9px] text-red-500 font-bold tracking-tight animate-pulse">
+                      Erro: Máximo 200 caracteres
+                    </span>
+                  )}
+                </div>
                 <textarea
                   placeholder="Descreva esta categoria..."
                   value={newCategory.descricao}
-                  onChange={(e) => setNewCategory({ ...newCategory, descricao: e.target.value })}
+                  onChange={(e) => {
+                    if (e.target.value.length <= 201) {
+                      setNewCategory({ ...newCategory, descricao: e.target.value });
+                    }
+                  }}
                   rows={3}
                   className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-[#1A237E]/30 transition-all text-sm resize-none"
                 />
               </div>
 
-              {modalError && (
-                <div className="flex items-center gap-2 text-red-500 text-xs font-bold mb-1 animate-in fade-in slide-in-from-top-1">
-                  <AlertCircle size={14} />
-                  <span>{modalError}</span>
-                </div>
-              )}
-
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest font-bold text-slate-500 block">
-                  Ordem de Exibição
-                </label>
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] uppercase tracking-widest font-bold text-slate-500 block">
+                    Ordem de Exibição
+                  </label>
+                  {orderInput.length > 2 && (
+                    <span className="text-[9px] text-red-500 font-bold tracking-tight animate-pulse">
+                      Erro: Máximo 2 caracteres
+                    </span>
+                  )}
+                </div>
                 <input
-                  type="number"
-                  min="1"
+                  type="text"
                   placeholder="1"
-                  value={newCategory.ordem}
+                  value={orderInput}
                   onChange={(e) => {
-                    setModalError('');
-                    setNewCategory({ ...newCategory, ordem: Number(e.target.value) });
+                    const val = e.target.value;
+                    if (val === '' || (/^\d*$/.test(val) && val.length <= 3)) {
+                      setOrderInput(val);
+                      setModalError('');
+                    }
                   }}
                   className={`w-full bg-slate-50 border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 transition-all text-sm ${modalError ? 'focus:ring-red-500/30 bg-red-50/50' : 'focus:ring-[#1A237E]/30'}`}
                 />
               </div>
+
+              {modalError && (
+                <div className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <div className="bg-red-500 p-1 rounded-full text-white">
+                    <span className="material-symbols-outlined text-sm">priority_high</span>
+                  </div>
+                  <p className="text-red-600 text-[11px] font-bold uppercase tracking-tight">{modalError}</p>
+                </div>
+              )}
 
               {/* Status Toggle */}
               <div className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl">

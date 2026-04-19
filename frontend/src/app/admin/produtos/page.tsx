@@ -29,11 +29,15 @@ export default function ProdutosPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [newProduct, setNewProduct] = useState({ nome: '', preco: 0, custo: 0, estoque: 0, destaque: false, ativo: true, categoria: '' });
+  const [newProduct, setNewProduct] = useState({ nome: '', descricao: '', preco: 0, custo: 0, estoque: 0, destaque: false, ativo: true, categoria: '' });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [sortByPrice, setSortByPrice] = useState(false);
   const [page, setPage] = useState(1);
+  const [priceInput, setPriceInput] = useState('');
+  const [costInput, setCostInput] = useState('');
+  const [stockInput, setStockInput] = useState('');
+  const [formError, setFormError] = useState('');
 
   const [role, setRole] = useState<string | null>(null);
 
@@ -86,11 +90,32 @@ export default function ProdutosPage() {
 
   const handleCreateOrUpdate = async () => {
     try {
+      setFormError('');
+      
+      if (!newProduct.nome) {
+        setFormError('O nome do produto é obrigatório.');
+        return;
+      }
+      if (!priceInput) {
+        setFormError('O preço do produto é obrigatório.');
+        return;
+      }
+      if (!stockInput) {
+        setFormError('A quantidade em estoque é obrigatória.');
+        return;
+      }
+
+      if (newProduct.nome.length > 80 || newProduct.descricao.length > 200 || priceInput.replace(/[,.]/g, '').length > 6 || stockInput.length > 4) {
+        setFormError('Corrija os campos com excesso de caracteres antes de salvar.');
+        return;
+      }
+
       const formData = new FormData();
       formData.append('nome', newProduct.nome);
-      formData.append('preco', String(newProduct.preco));
-      formData.append('custo', String(newProduct.custo));
-      formData.append('estoque', String(newProduct.estoque));
+      formData.append('descricao', newProduct.descricao);
+      formData.append('preco', priceInput.replace(',', '.'));
+      formData.append('custo', costInput.replace(',', '.'));
+      formData.append('estoque', stockInput);
       formData.append('destaque', String(newProduct.destaque));
       formData.append('ativo', String(newProduct.ativo));
       if (newProduct.categoria) formData.append('categoria', newProduct.categoria);
@@ -105,7 +130,11 @@ export default function ProdutosPage() {
       await fetchProducts();
       setShowModal(false);
       setEditingId(null);
-      setNewProduct({ nome: '', preco: 0, custo: 0, estoque: 0, destaque: false, ativo: true, categoria: '' });
+      setFormError('');
+      setNewProduct({ nome: '', descricao: '', preco: 0, custo: 0, estoque: 0, destaque: false, ativo: true, categoria: '' });
+      setPriceInput('');
+      setCostInput('');
+      setStockInput('');
       setImageFile(null);
       setImagePreview(null);
     } catch (err: any) {
@@ -116,8 +145,10 @@ export default function ProdutosPage() {
 
   const handleEditClick = (product: Product) => {
     setEditingId(product._id);
+    setFormError('');
     setNewProduct({
       nome: product.nome,
+      descricao: product.descricao || '',
       preco: product.preco,
       custo: product.custo || 0,
       estoque: product.estoque,
@@ -125,6 +156,9 @@ export default function ProdutosPage() {
       ativo: product.ativo !== undefined ? product.ativo : true,
       categoria: typeof product.categoria === 'object' ? product.categoria._id : (product.categoria || ''),
     });
+    setPriceInput(String(product.preco).replace('.', ','));
+    setCostInput(String(product.custo || 0).replace('.', ','));
+    setStockInput(String(product.estoque));
     setImagePreview(product.imagem_url || null);
     setImageFile(null);
     setShowModal(true);
@@ -163,7 +197,11 @@ export default function ProdutosPage() {
           <button
             onClick={() => {
               setEditingId(null);
-              setNewProduct({ nome: '', preco: 0, custo: 0, estoque: 0, destaque: false, ativo: true, categoria: '' });
+              setFormError('');
+              setNewProduct({ nome: '', descricao: '', preco: 0, custo: 0, estoque: 0, destaque: false, ativo: true, categoria: '' });
+              setPriceInput('');
+              setCostInput('');
+              setStockInput('');
               setImagePreview(null);
               setImageFile(null);
               setShowModal(true);
@@ -187,7 +225,7 @@ export default function ProdutosPage() {
           {
             label: 'Valor em Estoque',
             value: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
-              products.reduce((acc, p) => acc + (p.custo || 0) * p.estoque, 0)
+              products.filter(p => p.ativo).reduce((acc, p) => acc + (p.custo || 0) * p.estoque, 0)
             ),
             icon: DollarSign,
             color: 'text-emerald-600',
@@ -337,17 +375,17 @@ export default function ProdutosPage() {
                         </td>
                         <td className="px-8 py-5">
                           <div className="flex items-center gap-2">
-                             {product.ativo ? (
-                               <>
-                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                                 <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600">Ativo</span>
-                               </>
-                             ) : (
-                               <>
-                                 <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Inativo</span>
-                               </>
-                             )}
+                            {product.ativo ? (
+                              <>
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600">Ativo</span>
+                              </>
+                            ) : (
+                              <>
+                                <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Inativo</span>
+                              </>
+                            )}
                           </div>
                         </td>
                         <td className="px-8 py-5 text-right">
@@ -439,14 +477,25 @@ export default function ProdutosPage() {
             <div className="p-8 space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
-                    Nome do Produto
-                  </label>
+                  <div className="flex justify-between items-center">
+                    <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
+                      Nome do Produto
+                    </label>
+                    {newProduct.nome.length > 80 && (
+                      <span className="text-[9px] text-red-500 font-bold tracking-tight animate-pulse">
+                        Erro: Máximo 80 caracteres
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="text"
-                    placeholder="Ex: Poltrona Barcelona"
+                    placeholder="Ex: Camiseta Preta"
                     value={newProduct.nome}
-                    onChange={(e) => setNewProduct({ ...newProduct, nome: e.target.value })}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 81) {
+                        setNewProduct({ ...newProduct, nome: e.target.value });
+                      }
+                    }}
                     className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-primary/30 transition-all"
                   />
                 </div>
@@ -469,43 +518,102 @@ export default function ProdutosPage() {
                 </div>
               </div>
 
+              {/* Descrição */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
+                    Descrição do Produto
+                  </label>
+                  {newProduct.descricao.length > 200 && (
+                    <span className="text-[9px] text-red-500 font-bold tracking-tight animate-pulse">
+                      Erro: Máximo 200 caracteres
+                    </span>
+                  )}
+                </div>
+                <textarea
+                  placeholder="Descreva as características do produto..."
+                  value={newProduct.descricao}
+                  onChange={(e) => {
+                    if (e.target.value.length <= 201) {
+                      setNewProduct({ ...newProduct, descricao: e.target.value });
+                    }
+                  }}
+                  rows={2}
+                  className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-primary/30 transition-all resize-none"
+                />
+              </div>
+
               {/* Grid: Preço + Custo + Estoque */}
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
-                    Preço (R$)
-                  </label>
+                  <div className="flex justify-between items-center">
+                    <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
+                      Preço (R$)
+                    </label>
+                    {priceInput.replace(/[,.]/g, '').length > 6 && (
+                      <span className="text-[9px] text-red-500 font-bold tracking-tight animate-pulse">
+                        Erro: Máximo 6 caracteres
+                      </span>
+                    )}
+                  </div>
                   <input
-                    type="number"
-                    step="0.01"
-                    placeholder="0"
-                    value={newProduct.preco}
-                    onChange={(e) => setNewProduct({ ...newProduct, preco: Number(e.target.value) })}
+                    type="text"
+                    placeholder="0,00"
+                    value={priceInput}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '' || /^\d{0,5}([,.]\d{0,2})?$/.test(val)) {
+                        setPriceInput(val);
+                      }
+                    }}
                     className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-primary/30 transition-all"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
-                    Custo (R$)
-                  </label>
+                  <div className="flex justify-between items-center">
+                    <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
+                      Custo (R$)
+                    </label>
+                    {costInput.replace(/[,.]/g, '').length > 6 && (
+                      <span className="text-[9px] text-red-500 font-bold tracking-tight animate-pulse">
+                        Erro: Máximo 6 caracteres
+                      </span>
+                    )}
+                  </div>
                   <input
-                    type="number"
-                    step="0.01"
-                    placeholder="0"
-                    value={newProduct.custo}
-                    onChange={(e) => setNewProduct({ ...newProduct, custo: Number(e.target.value) })}
+                    type="text"
+                    placeholder="0,00"
+                    value={costInput}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '' || /^\d{0,5}([,.]\d{0,2})?$/.test(val)) {
+                        setCostInput(val);
+                      }
+                    }}
                     className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-primary/30 transition-all"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
-                    Qtd. Estoque
-                  </label>
+                  <div className="flex justify-between items-center">
+                    <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
+                      Qtd. Estoque
+                    </label>
+                    {stockInput.length > 4 && (
+                      <span className="text-[9px] text-red-500 font-bold tracking-tight animate-pulse">
+                        Erro: Máximo 4 caracteres
+                      </span>
+                    )}
+                  </div>
                   <input
-                    type="number"
+                    type="text"
                     placeholder="0"
-                    value={newProduct.estoque}
-                    onChange={(e) => setNewProduct({ ...newProduct, estoque: Number(e.target.value) })}
+                    value={stockInput}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '' || (/^\d*$/.test(val) && val.length <= 5)) {
+                        setStockInput(val);
+                      }
+                    }}
                     className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-primary/30 transition-all"
                   />
                 </div>
@@ -571,6 +679,15 @@ export default function ProdutosPage() {
                   />
                 </label>
               </div>
+
+              {formError && (
+                <div className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <div className="bg-red-500 p-1 rounded-full text-white">
+                    <span className="material-symbols-outlined text-sm">priority_high</span>
+                  </div>
+                  <p className="text-red-600 text-[11px] font-bold uppercase tracking-tight">{formError}</p>
+                </div>
+              )}
 
               <div className="pt-4 flex gap-4">
                 <button

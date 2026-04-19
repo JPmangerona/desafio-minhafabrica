@@ -42,6 +42,7 @@ export default function UsuariosPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'visualizador' });
   const [page, setPage] = useState(1);
+  const [formError, setFormError] = useState('');
 
   const fetchUsers = async () => {
     try {
@@ -78,8 +79,17 @@ export default function UsuariosPage() {
 
   const handleCreate = async () => {
     try {
+      setFormError('');
+      if (!newUser.name) return setFormError('O nome completo é obrigatório.');
+      if (!newUser.email) return setFormError('O e-mail é obrigatório.');
+      if (!newUser.password) return setFormError('A senha é obrigatória.');
+
+      if (newUser.name.length > 80 || newUser.email.length > 80 || newUser.password.length > 200) {
+        return setFormError('Corrija os campos com excesso de caracteres.');
+      }
+
       await userService.create(newUser);
-      await fetchUsers(); // Recarrega a lista
+      await fetchUsers();
       setShowModal(false);
       setNewUser({ name: '', email: '', password: '', role: 'visualizador' });
     } catch (err: any) {
@@ -104,6 +114,13 @@ export default function UsuariosPage() {
     if (!editingUser) return;
     
     try {
+      setFormError('');
+      if (!editingUser.name) return setFormError('O nome completo é obrigatório.');
+      
+      if (editingUser.name.length > 80) {
+        return setFormError('O nome não pode exceder 80 caracteres.');
+      }
+
       await userService.update(editingUser._id, editingUser);
       
       // Sincroniza o localStorage se o usuário editado for o mesmo que está logado
@@ -374,45 +391,85 @@ export default function UsuariosPage() {
 
             <div className="p-8 space-y-6">
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
-                  Nome Completo
-                </label>
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
+                    Nome Completo
+                  </label>
+                  {newUser.name.length > 80 && (
+                    <span className="text-[9px] text-red-500 font-bold tracking-tight animate-pulse">
+                      Erro: Máximo 80 caracteres
+                    </span>
+                  )}
+                </div>
                 <input
                   type="text"
                   placeholder="Digite o nome completo"
                   value={newUser.name}
-                  onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+                  onChange={(e) => {
+                    if (e.target.value.length <= 81) {
+                      setNewUser({ ...newUser, name: e.target.value });
+                    }
+                  }}
                   className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-secondary/30 transition-all"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
-                  E-mail
-                </label>
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
+                    E-mail
+                  </label>
+                  {newUser.email.length > 80 && (
+                    <span className="text-[9px] text-red-500 font-bold tracking-tight animate-pulse">
+                      Erro: Máximo 80 caracteres
+                    </span>
+                  )}
+                </div>
                 <input
                   type="email"
                   placeholder="email@minhafabrica.com"
                   value={newUser.email}
-                  onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                  onChange={(e) => {
+                    if (e.target.value.length <= 81) {
+                      setNewUser({ ...newUser, email: e.target.value });
+                    }
+                  }}
                   className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-secondary/30 transition-all"
                 />
               </div>
 
-
-
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
-                  Senha de Acesso
-                </label>
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
+                    Senha de Acesso
+                  </label>
+                  {newUser.password.length > 200 && (
+                    <span className="text-[9px] text-red-500 font-bold tracking-tight animate-pulse">
+                      Erro: Máximo 200 caracteres
+                    </span>
+                  )}
+                </div>
                 <input
                   type="password"
                   placeholder="Defina uma senha"
                   value={newUser.password}
-                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                  onChange={(e) => {
+                    if (e.target.value.length <= 201) {
+                      setNewUser({ ...newUser, password: e.target.value });
+                    }
+                  }}
                   className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-secondary/30 transition-all"
                 />
               </div>
+
+              {formError && (
+                <div className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <div className="bg-red-500 p-1 rounded-full text-white">
+                    <span className="material-symbols-outlined text-[14px]">priority_high</span>
+                  </div>
+                  <p className="text-red-600 text-[11px] font-bold uppercase tracking-tight">{formError}</p>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
@@ -421,10 +478,10 @@ export default function UsuariosPage() {
                 <select
                   value={newUser.role}
                   onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-                  className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-secondary/30 transition-all"
+                  className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-secondary/30 transition-all font-medium text-slate-700"
                 >
-                  {roles.filter(r => r !== 'admin').map((r) => (
-                    <option key={r}>{r}</option>
+                  {roles.filter(r => r !== 'admin' && r !== 'cliente').map((r) => (
+                    <option key={r} value={r}>{roleConfig[r]?.label || r}</option>
                   ))}
                 </select>
               </div>
@@ -491,16 +548,36 @@ export default function UsuariosPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
-                  Nome Completo
-                </label>
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
+                    Nome Completo
+                  </label>
+                  {editingUser.name.length > 80 && (
+                    <span className="text-[9px] text-red-500 font-bold tracking-tight animate-pulse">
+                      Erro: Máximo 80 caracteres
+                    </span>
+                  )}
+                </div>
                 <input
                   type="text"
                   value={editingUser.name}
-                  onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
+                  onChange={(e) => {
+                    if (e.target.value.length <= 81) {
+                      setEditingUser({ ...editingUser, name: e.target.value });
+                    }
+                  }}
                   className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-secondary/30 transition-all"
                 />
               </div>
+
+              {formError && (
+                <div className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <div className="bg-red-500 p-1 rounded-full text-white">
+                    <span className="material-symbols-outlined text-[14px]">priority_high</span>
+                  </div>
+                  <p className="text-red-600 text-[11px] font-bold uppercase tracking-tight">{formError}</p>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
@@ -528,7 +605,7 @@ export default function UsuariosPage() {
                   {editingUser.role === 'admin' ? (
                     <option value="admin">Administrador</option>
                   ) : (
-                    roles.filter(r => r !== 'admin').map((r) => (
+                    roles.filter(r => r !== 'admin' && r !== 'cliente').map((r) => (
                       <option key={r} value={r}>{roleConfig[r]?.label || r}</option>
                     ))
                   )}
