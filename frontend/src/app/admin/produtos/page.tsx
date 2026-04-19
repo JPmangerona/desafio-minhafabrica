@@ -477,6 +477,7 @@ export default function ProdutosPage() {
                   </label>
                   <input
                     type="number"
+                    step="0.01"
                     placeholder="0"
                     value={newProduct.preco}
                     onChange={(e) => setNewProduct({ ...newProduct, preco: Number(e.target.value) })}
@@ -489,6 +490,7 @@ export default function ProdutosPage() {
                   </label>
                   <input
                     type="number"
+                    step="0.01"
                     placeholder="0"
                     value={newProduct.custo}
                     onChange={(e) => setNewProduct({ ...newProduct, custo: Number(e.target.value) })}
