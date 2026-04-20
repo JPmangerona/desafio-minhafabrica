@@ -49,8 +49,8 @@ export function AdminSidebar() {
       localStorage.removeItem('user_role');
       localStorage.removeItem('user_name');
       localStorage.removeItem('user_email');
-      document.cookie = 'token=; Max-Age=0; path=/';
-      router.push('/login');
+      document.cookie = 'auth_token=; Max-Age=0; path=/';
+      router.push('/');
     }
   };
 

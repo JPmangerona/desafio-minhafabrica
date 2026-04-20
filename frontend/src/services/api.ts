@@ -33,6 +33,7 @@ api.interceptors.response.use(
   (error) => {
     if (typeof window !== 'undefined' && error.response && error.response.status === 401) {
       localStorage.removeItem('token');
+      document.cookie = 'auth_token=; Max-Age=0; path=/';
       // Evita loops infinitos se já estiver na página de login
       if (!window.location.pathname.includes('/login')) {
         window.location.href = '/login';
