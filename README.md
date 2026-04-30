@@ -34,7 +34,7 @@ O projeto é dividido em um monorepo simples:
 
 ## ✨ Funcionalidades Principais
 
-- **Autenticação e Autorização**: Sistema de login com JWT e controle de permissões por cargos (`admin`, `editor`).
+- **Autenticação e Autorização**: Sistema de login com JWT e controle de permissões por cargos (`admin`, `editor`, `visualizador`).
 - **Painel Administrativo**:
     - **Dashboard**: Estatísticas resumidas do sistema.
     - **Gestão de Usuários**: CRUD completo de usuários (apenas para administradores).
@@ -101,7 +101,7 @@ A aplicação está disponível publicamente no seguinte endereço:
 👉 **[https://minhafabrica.up.railway.app/](https://minhafabrica.up.railway.app/)**
 
 > [!IMPORTANT]
-> As **credenciais de acesso** (e-mail e senha) para os diferentes níveis de permissão foram enviadas diretamente por e-mail para avaliação.
+> As **credenciais de acesso** (e-mail e senha) foram enviadas diretamente por e-mail para avaliação.
 
 ---
 
@@ -110,19 +110,7 @@ A aplicação está disponível publicamente no seguinte endereço:
 1. **Público**: Pode visualizar produtos e categorias e realizar buscas.
 2. **Visualizador**: Acesso para consulta ao painel administrativo e detalhes internos, sem permissão de alteração.
 3. **Editor**: Pode gerenciar (Criar/Editar) produtos e categorias, mas não tem acesso à gestão de usuários.
-4. **Admin**: Acesso total ao sistema, incluindo dashboard e gestão de usuários.
-
----
-
-## 📝 Documentação da API (Principais Rotas)
-
-| Método | Rota | Descrição | Acesso |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/api/v1/auth/login` | Realiza o login | Público |
-| `GET` | `/api/v1/dashboard` | Estatísticas do sistema | Admin |
-| `GET` | `/api/v1/users` | Lista todos os usuários | Admin |
-| `GET` | `/api/v1/products` | Lista produtos públicos | Público |
-| `POST` | `/api/v1/categories` | Cria nova categoria | Admin/Editor |
+4. **Admin**: Acesso total ao sistema e gestão de usuários.
 
 ---
 
