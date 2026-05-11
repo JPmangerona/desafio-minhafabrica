@@ -18,7 +18,9 @@ export class ProductController {
             ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
             : req.body.imagem_url;
 
-        const product = await this.productService.createProduct({ ...data, imagem_url });
+        // [MULTI-TENANT] Passa o tenantId (vindo do middleware tenantContext) para o Service
+        const tenantId = req.tenantId as string;
+        const product = await this.productService.createProduct({ ...data, imagem_url }, tenantId);
         
         return res.status(201).json({
             success: true,
@@ -27,7 +29,18 @@ export class ProductController {
     }
 
     list = async (req: Request, res: Response) => {
-        const products = await this.productService.getActiveProductsForPublic();
+        // [MULTI-TENANT] Rota pública: precisa receber o tenantId via query param ou header
+        // para saber de qual loja mostrar os produtos na vitrine
+        const tenantId = req.query.tenant as string || req.headers['x-tenant-id'] as string;
+
+        if (!tenantId) {
+            return res.status(400).json({
+                success: false,
+                message: "É necessário informar o ID da loja (tenant) para listar os produtos."
+            });
+        }
+
+        const products = await this.productService.getActiveProductsForPublic(tenantId);
         return res.status(200).json({
             success: true,
             data: products
@@ -35,7 +48,9 @@ export class ProductController {
     }
 
     listAdmin = async (req: Request, res: Response) => {
-        const products = await this.productService.getAllProductsForAdmin();
+        // [MULTI-TENANT] O tenantId vem do middleware tenantContext (extraído do JWT)
+        const tenantId = req.tenantId as string;
+        const products = await this.productService.getAllProductsForAdmin(tenantId);
         return res.status(200).json({
             success: true,
             data: products
@@ -44,7 +59,17 @@ export class ProductController {
 
     listByCategory = async (req: Request, res: Response) => {
         const id = req.params.id as string;
-        const products = await this.productService.getProductsByCategory(id);
+        // [MULTI-TENANT] Rota pública: precisa receber o tenantId via query param ou header
+        const tenantId = req.query.tenant as string || req.headers['x-tenant-id'] as string;
+
+        if (!tenantId) {
+            return res.status(400).json({
+                success: false,
+                message: "É necessário informar o ID da loja (tenant) para listar os produtos."
+            });
+        }
+
+        const products = await this.productService.getProductsByCategory(id, tenantId);
         return res.status(200).json({
             success: true,
             data: products
@@ -53,7 +78,9 @@ export class ProductController {
 
     delete = async (req: Request, res: Response) => {
         const id = req.params.id as string;
-        await this.productService.deleteProduct(id);
+        // [MULTI-TENANT] Passa o tenantId para garantir que só delete produto da própria loja
+        const tenantId = req.tenantId as string;
+        await this.productService.deleteProduct(id, tenantId);
         return res.status(200).json({ 
             success: true,
             message: "Produto removido permanentemente" 
@@ -75,7 +102,9 @@ export class ProductController {
             data.imagem_url = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
         }
 
-        const product = await this.productService.updateProduct(id, data);
+        // [MULTI-TENANT] Passa o tenantId para garantir que só atualize produto da própria loja
+        const tenantId = req.tenantId as string;
+        const product = await this.productService.updateProduct(id, data, tenantId);
         
         return res.status(200).json({
             success: true,

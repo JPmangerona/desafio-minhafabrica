@@ -12,8 +12,10 @@ export class CategoryController {
         const imagem_url = req.file
             ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
             : req.body.imagem_url;
-            
-        const category = await this.categoryService.createCategory({ ...data, imagem_url });
+
+        // [MULTI-TENANT] Passa o tenantId (vindo do middleware tenantContext) para o Service
+        const tenantId = req.tenantId as string;
+        const category = await this.categoryService.createCategory({ ...data, imagem_url }, tenantId);
         
         return res.status(201).json({
             success: true,
@@ -22,7 +24,18 @@ export class CategoryController {
     }
 
     list = async (req: Request, res: Response) => {
-        const categories = await this.categoryService.getActiveCategoriesForPublic();
+        // [MULTI-TENANT] Rota pública: precisa receber o tenantId via query param ou header
+        // para saber de qual loja mostrar as categorias na vitrine
+        const tenantId = req.query.tenant as string || req.headers['x-tenant-id'] as string;
+
+        if (!tenantId) {
+            return res.status(400).json({
+                success: false,
+                message: "É necessário informar o ID da loja (tenant) para listar as categorias."
+            });
+        }
+
+        const categories = await this.categoryService.getActiveCategoriesForPublic(tenantId);
         return res.status(200).json({
             success: true,
             data: categories
@@ -30,7 +43,9 @@ export class CategoryController {
     }
 
     listAdmin = async (req: Request, res: Response) => {
-        const categories = await this.categoryService.getAllCategoriesForAdmin();
+        // [MULTI-TENANT] O tenantId vem do middleware tenantContext (extraído do JWT)
+        const tenantId = req.tenantId as string;
+        const categories = await this.categoryService.getAllCategoriesForAdmin(tenantId);
         return res.status(200).json({
             success: true,
             data: categories
@@ -40,8 +55,10 @@ export class CategoryController {
     delete = async (req: Request, res: Response) => {
         try {
             const id = req.params.id as string;
-            console.log(`[BACKEND] Tentando excluir categoria ID: ${id}`);
-            await this.categoryService.deleteCategory(id);
+            // [MULTI-TENANT] Passa o tenantId para garantir que só delete categoria da própria loja
+            const tenantId = req.tenantId as string;
+            console.log(`[BACKEND] Tentando excluir categoria ID: ${id} (Loja: ${tenantId})`);
+            await this.categoryService.deleteCategory(id, tenantId);
             return res.status(200).json({ 
                 success: true,
                 message: "Categoria removida permanentemente" 
@@ -65,7 +82,9 @@ export class CategoryController {
             data.imagem_url = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
         }
 
-        const category = await this.categoryService.updateCategory(id, data);
+        // [MULTI-TENANT] Passa o tenantId para garantir que só atualize categoria da própria loja
+        const tenantId = req.tenantId as string;
+        const category = await this.categoryService.updateCategory(id, data, tenantId);
         
         return res.status(200).json({
             success: true,

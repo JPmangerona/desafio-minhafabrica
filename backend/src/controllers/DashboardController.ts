@@ -6,10 +6,14 @@ import Category from "../models/CategoryModel.js";
 export class DashboardController {
     getStats = async (req: Request, res: Response) => {
         try {
+            // [MULTI-TENANT] O tenantId vem do middleware tenantContext (extraído do JWT)
+            const tenantId = req.tenantId as string;
+
+            // [MULTI-TENANT] Filtra as contagens APENAS pela loja do admin logado
             const [userCount, products, categoryCount] = await Promise.all([
-                User.countDocuments({ ativo: true }),
-                Product.find({ ativo: true }),
-                Category.countDocuments({ ativo: true })
+                User.countDocuments({ ativo: true, tenant_id: tenantId }),
+                Product.find({ ativo: true, tenant_id: tenantId }),
+                Category.countDocuments({ ativo: true, tenant_id: tenantId })
             ]);
 
             const inventoryValue = products.reduce((acc: number, p: any) => acc + (p.custo || 0) * p.estoque, 0);

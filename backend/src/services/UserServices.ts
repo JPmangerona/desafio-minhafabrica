@@ -6,7 +6,8 @@ import { AppError } from "../shared/errors/AppError.js";
 export class UserService {
     private userRepository = new UserRepository();
 
-    createUser = async (userData: any) => {
+    // [MULTI-TENANT] Agora recebe tenantId para vincular o usuário criado à loja correta
+    createUser = async (userData: any, tenantId?: string) => {
         const { name, email, password } = userData;
 
         if (!name || !email || !password) {
@@ -25,12 +26,20 @@ export class UserService {
 
         const salt = await bcrypt.genSalt(10);
         userData.password = await bcrypt.hash(password, salt);
+
+        // [MULTI-TENANT] Se o tenantId foi passado, vincula o novo usuário a essa loja
+        if (tenantId) {
+            userData.tenant_id = tenantId;
+        }
         
         await this.userRepository.saveUser(userData);
     }
 
-    getAllUsers = async () => {
-        return await this.userRepository.findAll();
+    // [MULTI-TENANT] Recebe tenantId opcional:
+    //   - Se for admin de loja: lista apenas os usuários da SUA loja
+    //   - Se for superadmin (sem tenantId): lista TODOS os usuários de TODAS as lojas
+    getAllUsers = async (tenantId?: string) => {
+        return await this.userRepository.findAll(tenantId);
     }
 
     deleteUser = async (id: string) => {
@@ -63,6 +72,7 @@ export class UserService {
         return user;
     }
 
+    // [MULTI-TENANT] O token JWT agora inclui id e tenant_id do usuário
     getToken = async (email: string, password: string) => {
         const user = await this.getAuthenticatedUser(email, password);
 
@@ -71,7 +81,18 @@ export class UserService {
         }
 
         const secret = process.env.JWT_SECRET as string;
-        const token = jwt.sign({ name: user.name, email: user.email, role: user.role }, secret, { expiresIn: '1d' });
+        const token = jwt.sign(
+            { 
+                id: user._id.toString(),
+                name: user.name, 
+                email: user.email, 
+                role: user.role,
+                // [MULTI-TENANT] Se o usuário pertence a uma loja, inclui o tenant_id no token
+                tenant_id: user.tenant_id ? user.tenant_id.toString() : undefined
+            }, 
+            secret, 
+            { expiresIn: '1d' }
+        );
 
         return token;
     }

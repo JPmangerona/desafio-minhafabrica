@@ -12,8 +12,17 @@ const userSchema = new mongoose.Schema({
     role: { 
         type: String, 
         required: true, 
-        enum: ['admin', 'cliente', 'visualizador', 'editor'], 
+        enum: ['superadmin', 'admin', 'cliente', 'visualizador', 'editor'], 
         default: 'cliente' 
+    },
+    tenant_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'tenant',
+        required: false // superadmin não pertence a nenhum tenant
+    },
+    permissions: {
+        type: [String],
+        default: [] // Array vazio por padrão
     },
     cpf: { type: String, required: false },
     endereco: {

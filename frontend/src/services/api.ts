@@ -8,12 +8,19 @@ const api = axios.create({
     },
 });
 
-// Interceptor para injetar o Token nas requisições (Client-side)
+// Interceptor para injetar o Token e o Tenant nas requisições (Client-side)
 api.interceptors.request.use((config) => {
     if (typeof window !== 'undefined') {
         const token = localStorage.getItem('token');
         if (token && config.headers) {
             config.headers.Authorization = `Bearer ${token}`;
+        }
+
+        // [MULTI-TENANT] Injeta o tenant_id salvo no login como header x-tenant-id
+        // Isso é usado nas rotas públicas (busca, listagem de vitrine)
+        const tenantId = localStorage.getItem('tenant_id');
+        if (tenantId && config.headers) {
+            config.headers['x-tenant-id'] = tenantId;
         }
     }
     return config;
@@ -33,6 +40,7 @@ api.interceptors.response.use(
   (error) => {
     if (typeof window !== 'undefined' && error.response && error.response.status === 401) {
       localStorage.removeItem('token');
+      localStorage.removeItem('tenant_id'); // [MULTI-TENANT] Limpa o tenant_id também
       document.cookie = 'auth_token=; Max-Age=0; path=/';
       // Evita loops infinitos se já estiver na página de login
       if (!window.location.pathname.includes('/login')) {

@@ -2,7 +2,8 @@ export interface User {
     _id: string;
     name: string;
     email: string;
-    role: 'admin' | 'cliente' | 'visualizador' | 'editor';
+    role: 'superadmin' | 'admin' | 'cliente' | 'visualizador' | 'editor'; // [MULTI-TENANT] Adicionado 'superadmin'
+    tenant_id?: string; // [MULTI-TENANT] ID da loja à qual o usuário pertence
     cpf?: string;
     endereco?: {
         rua: string;
@@ -22,6 +23,7 @@ export interface Category {
     imagem_url?: string;
     ativo: boolean;
     ordem: number;
+    tenant_id: string; // [MULTI-TENANT] ID da loja dona desta categoria
     createdAt: string;
     updatedAt: string;
 }
@@ -38,6 +40,17 @@ export interface Product {
     categoria?: Category | string;
     ativo: boolean;
     destaque: boolean;
+    tenant_id: string; // [MULTI-TENANT] ID da loja dona deste produto
+    createdAt: string;
+    updatedAt: string;
+}
+
+// [MULTI-TENANT] Novo tipo para representar uma Loja (Tenant) no frontend
+export interface Tenant {
+    _id: string;
+    name: string;
+    slug: string;
+    active: boolean;
     createdAt: string;
     updatedAt: string;
 }

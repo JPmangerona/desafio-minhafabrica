@@ -13,7 +13,13 @@ const productSchema = new mongoose.Schema({
         required: false 
     },
     ativo: { type: Boolean, default: true },
-    destaque: { type: Boolean, default: false }
+    destaque: { type: Boolean, default: false },
+    tenant_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'tenant',
+        required: true,
+        index: true
+    }
 }, { timestamps: true });
 
 const Product = mongoose.model("product", productSchema);

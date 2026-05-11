@@ -22,12 +22,17 @@ export default function LoginPage() {
       const response = await authService.login({ email, password });
       
       if (response.success) {
-        const { token, role, name } = response.data;
+        const { token, role, name, tenant_id } = response.data;
         
         localStorage.setItem('token', token);
         localStorage.setItem('user_role', role);
         localStorage.setItem('user_name', name);
         localStorage.setItem('user_email', email); 
+
+        // [MULTI-TENANT] Salva o tenant_id no localStorage para uso nas requisições da API
+        if (tenant_id) {
+          localStorage.setItem('tenant_id', tenant_id);
+        }
         
         // Define um cookie para que o Middleware do Next.js consiga ler no servidor
         document.cookie = `auth_token=${token}; path=/; max-age=86400; SameSite=Lax`;

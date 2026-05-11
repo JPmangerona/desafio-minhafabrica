@@ -8,7 +8,9 @@ export class UserController {
         const userService = new UserService();
         const user = request.body;
 
-        await userService.createUser(user);
+        // [MULTI-TENANT] Passa o tenantId para vincular o novo usuário à loja do admin que o está criando
+        const tenantId = request.tenantId;
+        await userService.createUser(user, tenantId);
         
         return response.status(201).json({
             success: true,
@@ -18,7 +20,11 @@ export class UserController {
 
     getAllUsers = async (request: Request, response: Response) => {
         const userService = new UserService();
-        const users = await userService.getAllUsers();
+
+        // [MULTI-TENANT] Se for admin de loja, lista apenas os usuários da SUA loja
+        // Se for superadmin (tenantId undefined), lista TODOS os usuários
+        const tenantId = request.tenantId;
+        const users = await userService.getAllUsers(tenantId);
         
         return response.status(200).json({
             success: true,

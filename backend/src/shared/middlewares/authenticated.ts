@@ -3,9 +3,11 @@ import jwt from 'jsonwebtoken';
 import { AppError } from '../errors/AppError.js';
 
 interface TokenPayload {
+    id: string;
     name: string;
     email: string;
     role: string;
+    tenant_id?: string;
     iat: number;
     exp: number;
 }
@@ -26,13 +28,14 @@ export const authenticated = (req: Request, res: Response, next: NextFunction) =
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
-        const { name, email, role } = decoded as TokenPayload;
+        const { id, name, email, role, tenant_id } = decoded as TokenPayload;
 
         // Adiciona dados do usuário no Request para uso posterior
-        req.user = { name, email, role };
+        req.user = { id, name, email, role, tenant_id };
 
         return next();
     } catch (err) {
         throw new AppError('Token JWT inválido ou expirado.', 401);
     }
 };
+
