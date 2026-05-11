@@ -38,6 +38,7 @@ export default function CatalogosPage() {
   const [orderInput, setOrderInput] = useState('');
 
   const [role, setRole] = useState<string | null>(null);
+  const [permissions, setPermissions] = useState<string[]>([]);
 
   const fetchCategories = async () => {
     try {
@@ -53,6 +54,7 @@ export default function CatalogosPage() {
 
   useEffect(() => {
     setRole(localStorage.getItem('user_role'));
+    setPermissions(JSON.parse(localStorage.getItem('user_permissions') || '[]'));
     fetchCategories();
   }, []);
 
@@ -76,6 +78,8 @@ export default function CatalogosPage() {
 
   const activeCount = categories.filter((c) => c.ativo).length;
   const inactiveCount = categories.filter((c) => !c.ativo).length;
+  const canWriteCategories =
+    role === 'admin' || role === 'superadmin' || permissions.includes('categories.write');
 
   const handleCreateOrUpdate = async () => {
     try {
@@ -166,7 +170,7 @@ export default function CatalogosPage() {
             ordem de exibição em um único lugar.
           </p>
         </div>
-        {role !== 'visualizador' && (
+        {canWriteCategories && (
           <button
             onClick={() => {
               setEditingId(null);
@@ -329,7 +333,7 @@ export default function CatalogosPage() {
                         </td>
                         <td className="px-8 py-5 text-right">
                           <div className="flex items-center justify-end gap-2 text-slate-400">
-                            {role !== 'visualizador' ? (
+                            {canWriteCategories ? (
                               <>
                                 <button onClick={() => handleEditClick(cat)} className="p-2 hover:bg-slate-100 hover:text-[#1A237E] rounded-xl transition-all" title="Editar">
                                   <Edit3 size={18} />

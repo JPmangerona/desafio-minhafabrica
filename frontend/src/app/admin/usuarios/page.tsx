@@ -23,6 +23,7 @@ import { useRouter } from 'next/navigation';
 
 // Mapeamento de cores e labels para as roles do sistema
 const roleConfig: Record<string, { label: string, color: string }> = {
+  superadmin: { label: 'Super Admin', color: 'bg-purple-100 text-purple-700' },
   admin: { label: 'Administrador', color: 'bg-indigo-100 text-indigo-700' },
   editor: { label: 'Editor', color: 'bg-blue-100 text-blue-700' },
   visualizador: { label: 'Visualizador', color: 'bg-amber-100 text-amber-700' },
@@ -30,6 +31,31 @@ const roleConfig: Record<string, { label: string, color: string }> = {
 };
 
 const roles = Object.keys(roleConfig);
+
+const availablePermissions = [
+  { id: 'dashboard.read', label: 'Ver Dashboard' },
+  { id: 'products.read', label: 'Ver Produtos' },
+  { id: 'products.write', label: 'Criar, editar e excluir Produtos' },
+  { id: 'categories.read', label: 'Ver Catalogos' },
+  { id: 'categories.write', label: 'Criar, editar e excluir Catalogos' },
+  { id: 'users.read', label: 'Ver Usuarios' },
+  { id: 'users.write', label: 'Criar, editar e excluir Usuarios' },
+];
+
+type UserFormState = {
+  name: string;
+  email: string;
+  password: string;
+  role: User['role'];
+  permissions: string[];
+};
+
+const canConfigurePermissions = (role: string) => role !== 'admin' && role !== 'superadmin';
+
+const togglePermission = (permissions: string[], permission: string) =>
+  permissions.includes(permission)
+    ? permissions.filter((item) => item !== permission)
+    : [...permissions, permission];
 
 export default function UsuariosPage() {
   const router = useRouter();
@@ -40,7 +66,13 @@ export default function UsuariosPage() {
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'visualizador' });
+  const [newUser, setNewUser] = useState<UserFormState>({
+    name: '',
+    email: '',
+    password: '',
+    role: 'visualizador',
+    permissions: [],
+  });
   const [page, setPage] = useState(1);
   const [formError, setFormError] = useState('');
 
@@ -59,7 +91,7 @@ export default function UsuariosPage() {
 
   useEffect(() => {
     const role = localStorage.getItem('user_role');
-    if (role !== 'admin') {
+    if (role !== 'admin' && role !== 'superadmin') {
       router.push('/admin/dashboard');
       return;
     }
@@ -91,7 +123,7 @@ export default function UsuariosPage() {
       await userService.create(newUser);
       await fetchUsers();
       setShowModal(false);
-      setNewUser({ name: '', email: '', password: '', role: 'visualizador' });
+      setNewUser({ name: '', email: '', password: '', role: 'visualizador', permissions: [] });
     } catch (err: any) {
       alert(err.response?.data?.message || 'Erro ao criar usuário');
     }
@@ -127,6 +159,7 @@ export default function UsuariosPage() {
       if (editingUser.email === localStorage.getItem('user_email')) {
         localStorage.setItem('user_name', editingUser.name);
         localStorage.setItem('user_role', editingUser.role);
+        localStorage.setItem('user_permissions', JSON.stringify(editingUser.permissions || []));
         // Despacha um evento customizado para notificar a Sidebar e outros componentes
         window.dispatchEvent(new CustomEvent('user-profile-updated'));
       }
@@ -140,7 +173,7 @@ export default function UsuariosPage() {
   };
 
   const openEditModal = (user: User) => {
-    setEditingUser({ ...user });
+    setEditingUser({ ...user, permissions: user.permissions || [] });
     setShowEditModal(true);
   };
 
@@ -371,7 +404,7 @@ export default function UsuariosPage() {
       {/* ── Add User Modal ── */}
       {showModal && (
         <div className="fixed inset-0 bg-primary/20 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden">
+          <div className="bg-white w-full max-w-2xl max-h-[90vh] rounded-[2.5rem] shadow-2xl overflow-y-auto">
             <div className="bg-secondary p-8 text-white">
               <div className="flex justify-between items-start">
                 <div>
@@ -477,14 +510,50 @@ export default function UsuariosPage() {
                 </label>
                 <select
                   value={newUser.role}
-                  onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+                  onChange={(e) => {
+                    const role = e.target.value as User['role'];
+                    setNewUser({
+                      ...newUser,
+                      role,
+                      permissions: canConfigurePermissions(role) ? newUser.permissions : [],
+                    });
+                  }}
                   className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-secondary/30 transition-all font-medium text-slate-700"
                 >
-                  {roles.filter(r => r !== 'admin' && r !== 'cliente').map((r) => (
+                  {roles.filter(r => r !== 'superadmin' && r !== 'admin' && r !== 'cliente').map((r) => (
                     <option key={r} value={r}>{roleConfig[r]?.label || r}</option>
                   ))}
                 </select>
               </div>
+
+              {canConfigurePermissions(newUser.role) && (
+                <div className="space-y-3">
+                  <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
+                    Permissoes
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {availablePermissions.map((permission) => (
+                      <label
+                        key={permission.id}
+                        className="flex items-center gap-3 bg-surface-container-low rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={newUser.permissions.includes(permission.id)}
+                          onChange={() =>
+                            setNewUser({
+                              ...newUser,
+                              permissions: togglePermission(newUser.permissions, permission.id),
+                            })
+                          }
+                          className="h-4 w-4 accent-secondary"
+                        />
+                        {permission.label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="pt-4 flex gap-4">
                 <button
@@ -508,7 +577,7 @@ export default function UsuariosPage() {
       {/* ── Edit User Modal ── */}
       {showEditModal && editingUser && (
         <div className="fixed inset-0 bg-primary/20 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden">
+          <div className="bg-white w-full max-w-2xl max-h-[90vh] rounded-[2.5rem] shadow-2xl overflow-y-auto">
             <div className="bg-secondary p-8 text-white">
               <div className="flex justify-between items-start">
                 <div>
@@ -598,19 +667,55 @@ export default function UsuariosPage() {
                 <select
                   value={editingUser.role}
                   disabled={editingUser.role === 'admin'}
-                  onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value as any })}
+                  onChange={(e) => {
+                    const role = e.target.value as User['role'];
+                    setEditingUser({
+                      ...editingUser,
+                      role,
+                      permissions: canConfigurePermissions(role) ? editingUser.permissions || [] : [],
+                    });
+                  }}
                   className="w-full bg-surface-container-low border-none rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-secondary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {/* Se for admin, mostramos apenas a opção admin desabilitada */}
                   {editingUser.role === 'admin' ? (
                     <option value="admin">Administrador</option>
                   ) : (
-                    roles.filter(r => r !== 'admin' && r !== 'cliente').map((r) => (
+                    roles.filter(r => r !== 'superadmin' && r !== 'admin' && r !== 'cliente').map((r) => (
                       <option key={r} value={r}>{roleConfig[r]?.label || r}</option>
                     ))
                   )}
                 </select>
               </div>
+
+              {canConfigurePermissions(editingUser.role) && (
+                <div className="space-y-3">
+                  <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant block">
+                    Permissoes
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {availablePermissions.map((permission) => (
+                      <label
+                        key={permission.id}
+                        className="flex items-center gap-3 bg-surface-container-low rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={(editingUser.permissions || []).includes(permission.id)}
+                          onChange={() =>
+                            setEditingUser({
+                              ...editingUser,
+                              permissions: togglePermission(editingUser.permissions || [], permission.id),
+                            })
+                          }
+                          className="h-4 w-4 accent-secondary"
+                        />
+                        {permission.label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="pt-4 flex gap-4">
                 <button

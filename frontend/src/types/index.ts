@@ -3,6 +3,7 @@ export interface User {
     name: string;
     email: string;
     role: 'superadmin' | 'admin' | 'cliente' | 'visualizador' | 'editor'; // [MULTI-TENANT] Adicionado 'superadmin'
+    permissions?: string[];
     tenant_id?: string; // [MULTI-TENANT] ID da loja à qual o usuário pertence
     cpf?: string;
     endereco?: {

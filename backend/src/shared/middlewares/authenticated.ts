@@ -7,6 +7,7 @@ interface TokenPayload {
     name: string;
     email: string;
     role: string;
+    permissions: string[];
     tenant_id?: string;
     iat: number;
     exp: number;
@@ -28,14 +29,16 @@ export const authenticated = (req: Request, res: Response, next: NextFunction) =
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
-        const { id, name, email, role, tenant_id } = decoded as TokenPayload;
+        const { id, name, email, role, tenant_id, permissions } = decoded as TokenPayload;
 
         // Adiciona dados do usuário no Request para uso posterior
-        req.user = { id, name, email, role, tenant_id };
+        req.user = { id, name, email, role, permissions: permissions || [] };
+        if (tenant_id) {
+            req.user.tenant_id = tenant_id;
+        }
 
         return next();
     } catch (err) {
         throw new AppError('Token JWT inválido ou expirado.', 401);
     }
 };
-

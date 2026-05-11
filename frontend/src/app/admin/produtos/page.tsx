@@ -40,6 +40,7 @@ export default function ProdutosPage() {
   const [formError, setFormError] = useState('');
 
   const [role, setRole] = useState<string | null>(null);
+  const [permissions, setPermissions] = useState<string[]>([]);
 
   const fetchProducts = async () => {
     try {
@@ -64,6 +65,7 @@ export default function ProdutosPage() {
 
   useEffect(() => {
     setRole(localStorage.getItem('user_role'));
+    setPermissions(JSON.parse(localStorage.getItem('user_permissions') || '[]'));
     fetchProducts();
     fetchCategories();
   }, []);
@@ -87,6 +89,8 @@ export default function ProdutosPage() {
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const paginated = filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  const canWriteProducts =
+    role === 'admin' || role === 'superadmin' || permissions.includes('products.write');
 
   const handleCreateOrUpdate = async () => {
     try {
@@ -193,7 +197,7 @@ export default function ProdutosPage() {
             preços em um único lugar.
           </p>
         </div>
-        {role !== 'visualizador' && (
+        {canWriteProducts && (
           <button
             onClick={() => {
               setEditingId(null);
@@ -390,7 +394,7 @@ export default function ProdutosPage() {
                         </td>
                         <td className="px-8 py-5 text-right">
                           <div className="flex items-center justify-end gap-2 text-slate-400">
-                            {role !== 'visualizador' ? (
+                            {canWriteProducts ? (
                               <>
                                 <button onClick={() => handleEditClick(product)} className="p-2 hover:bg-slate-100 hover:text-[#1A237E] rounded-xl transition-all" title="Editar">
                                   <Edit3 size={18} />

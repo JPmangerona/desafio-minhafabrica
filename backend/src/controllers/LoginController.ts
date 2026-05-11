@@ -20,6 +20,7 @@ export class LoginController {
                 token, 
                 role: user?.role, 
                 name: user?.name,
+                permissions: user?.permissions || [],
                 // [MULTI-TENANT] Retorna o tenant_id para o frontend saber de qual loja é o usuário
                 tenant_id: user?.tenant_id ? user.tenant_id.toString() : undefined
             }

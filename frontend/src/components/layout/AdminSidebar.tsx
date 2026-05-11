@@ -14,10 +14,10 @@ import {
 } from 'lucide-react';
 
 const navItems = [
-  { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/admin/produtos', icon: Package, label: 'Produtos' },
-  { href: '/admin/catalogos', icon: BookMarked, label: 'Catálogos' },
-  { href: '/admin/usuarios', icon: Users, label: 'Usuários' },
+  { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard', permission: 'dashboard.read' },
+  { href: '/admin/produtos', icon: Package, label: 'Produtos', permission: 'products.read' },
+  { href: '/admin/catalogos', icon: BookMarked, label: 'Catálogos', permission: 'categories.read' },
+  { href: '/admin/usuarios', icon: Users, label: 'Usuários', permission: 'users.read' },
 ];
 
 export function AdminSidebar() {
@@ -25,10 +25,12 @@ export function AdminSidebar() {
   const router = useRouter();
   const [role, setRole] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
+  const [permissions, setPermissions] = useState<string[]>([]);
 
   const refreshUserData = () => {
     setRole(localStorage.getItem('user_role'));
     setUserName(localStorage.getItem('user_name'));
+    setPermissions(JSON.parse(localStorage.getItem('user_permissions') || '[]'));
   };
 
   useEffect(() => {
@@ -49,6 +51,7 @@ export function AdminSidebar() {
       localStorage.removeItem('user_role');
       localStorage.removeItem('user_name');
       localStorage.removeItem('user_email');
+      localStorage.removeItem('user_permissions');
       document.cookie = 'auth_token=; Max-Age=0; path=/';
       router.push('/');
     }
@@ -62,12 +65,9 @@ export function AdminSidebar() {
   };
 
   // Filtra itens baseados na função do usuário
-  const displayNavItems = navItems.filter(item => {
-    if (item.href === '/admin/usuarios') {
-      return role === 'admin';
-    }
-    return true;
-  });
+  const displayNavItems = navItems.filter(item =>
+    role === 'admin' || role === 'superadmin' || permissions.includes(item.permission)
+  );
 
   return (
     <aside className="fixed h-full left-0 top-0 w-64 bg-white flex flex-col py-6 gap-2 shadow-sm z-40 border-r border-slate-100">

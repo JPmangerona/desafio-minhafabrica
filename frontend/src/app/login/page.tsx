@@ -22,12 +22,13 @@ export default function LoginPage() {
       const response = await authService.login({ email, password });
       
       if (response.success) {
-        const { token, role, name, tenant_id } = response.data;
+        const { token, role, name, tenant_id, permissions } = response.data;
         
         localStorage.setItem('token', token);
         localStorage.setItem('user_role', role);
         localStorage.setItem('user_name', name);
         localStorage.setItem('user_email', email); 
+        localStorage.setItem('user_permissions', JSON.stringify(permissions || []));
 
         // [MULTI-TENANT] Salva o tenant_id no localStorage para uso nas requisições da API
         if (tenant_id) {

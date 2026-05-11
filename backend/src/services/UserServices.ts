@@ -87,6 +87,7 @@ export class UserService {
                 name: user.name, 
                 email: user.email, 
                 role: user.role,
+                permissions: user.permissions || [],
                 // [MULTI-TENANT] Se o usuário pertence a uma loja, inclui o tenant_id no token
                 tenant_id: user.tenant_id ? user.tenant_id.toString() : undefined
             }, 

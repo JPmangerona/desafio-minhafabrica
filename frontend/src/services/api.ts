@@ -41,6 +41,7 @@ api.interceptors.response.use(
     if (typeof window !== 'undefined' && error.response && error.response.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('tenant_id'); // [MULTI-TENANT] Limpa o tenant_id também
+      localStorage.removeItem('user_permissions');
       document.cookie = 'auth_token=; Max-Age=0; path=/';
       // Evita loops infinitos se já estiver na página de login
       if (!window.location.pathname.includes('/login')) {

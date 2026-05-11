@@ -25,7 +25,7 @@ async function seedMultiTenant() {
       existingSuperadmin.password = await bcrypt.hash(superadminPassword, salt);
       existingSuperadmin.role = 'superadmin';
       existingSuperadmin.ativo = true;
-      existingSuperadmin.tenant_id = undefined;
+      existingSuperadmin.tenant_id = null;
       await existingSuperadmin.save();
     } else {
       console.log(`Criando Superadmin: ${superadminEmail}...`);

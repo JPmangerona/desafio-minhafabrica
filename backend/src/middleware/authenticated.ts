@@ -18,18 +18,6 @@ export const getToken = (request: Request): string | null => {
     return token;
 }
 
-declare global {
-    namespace Express {
-        interface Request {
-            user?: {
-                name: string;
-                email: string;
-                role: string;
-            };
-        }
-    }
-}
-
 export const authenticated = (request: Request, response: Response, next: NextFunction) => {
     const token = getToken(request);
     const secret = process.env.JWT_SECRET;
