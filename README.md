@@ -1,6 +1,6 @@
-# MinhaFábrica - Desafio Técnico
+# MinhaFábrica - Site
 
-Este repositório contém a solução para o desafio técnico "MinhaFábrica", uma plataforma completa de gerenciamento e visualização de produtos e categorias, com controle de acesso, painel administrativo e interface pública.
+Este repositório contém o site feito para Minha Fábrica, uma plataforma completa de gerenciamento e visualização de produtos e categorias, com controle de acesso, painel administrativo e interface pública.
 
 ## 🚀 Tecnologias
 
